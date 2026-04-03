@@ -97,8 +97,7 @@ export class ManageScene extends Phaser.Scene {
     }, 200, 44);
 
     new UIButton(this, GAME_WIDTH / 2 + 120, btnY, 'Compete', () => {
-      // TODO: CompetitionScene
-      console.log('Compete');
+      this.scene.start('Competition');
     }, 200, 44);
   }
 
