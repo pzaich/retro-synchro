@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from '../config';
 import { GameState } from '../systems/GameState';
 import { scoreRoutine, CompetitionResult, ElementScore } from '../systems/ScoringEngine';
+import { generateOpponent, OpponentTeam } from '../systems/OpponentGenerator';
 import { getFormationPositions } from '../animations/FormationManager';
 import { ElementData } from '../entities/Element';
 import elementsData from '../data/elements.json';
@@ -18,6 +19,7 @@ export class CompetitionScene extends Phaser.Scene {
   private swimmerSprites: Phaser.GameObjects.Arc[] = [];
   private elementLookup = new Map<string, ElementData>();
   private result!: CompetitionResult;
+  private opponent!: OpponentTeam;
   private currentElementIndex = 0;
   private elementLabel!: Phaser.GameObjects.Text;
   private scoreFlash!: Phaser.GameObjects.Text;
@@ -43,6 +45,15 @@ export class CompetitionScene extends Phaser.Scene {
       this.showNoRoutine();
       return;
     }
+
+    // Generate opponent
+    const allElements = elementsData as ElementData[];
+    this.opponent = generateOpponent(
+      state.seasonIndex,
+      state.competitionsWon,
+      allElements,
+      this.elementLookup,
+    );
 
     // Pre-calculate scores
     this.result = scoreRoutine(routine, state.team.swimmers, this.elementLookup);
@@ -318,7 +329,11 @@ export class CompetitionScene extends Phaser.Scene {
 
     // Brief pause then show results
     this.time.delayedCall(1500, () => {
-      this.scene.start('Results', { result: this.result });
+      this.scene.start('Results', {
+        result: this.result,
+        opponentScore: this.opponent.preCalculatedScore,
+        opponentName: this.opponent.team.name,
+      });
     });
   }
 }

@@ -7,6 +7,7 @@ import { SwimmerDetailScene } from './scenes/SwimmerDetailScene';
 import { RoutineEditorScene } from './scenes/RoutineEditorScene';
 import { CompetitionScene } from './scenes/CompetitionScene';
 import { ResultsScene } from './scenes/ResultsScene';
+import { SeasonScene } from './scenes/SeasonScene';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -19,7 +20,7 @@ const config: Phaser.Types.Core.GameConfig = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [BootScene, TitleScene, ManageScene, SwimmerDetailScene, RoutineEditorScene, CompetitionScene, ResultsScene],
+  scene: [BootScene, TitleScene, ManageScene, SwimmerDetailScene, RoutineEditorScene, CompetitionScene, ResultsScene, SeasonScene],
 };
 
 new Phaser.Game(config);

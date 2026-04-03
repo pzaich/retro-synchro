@@ -92,8 +92,7 @@ export class ManageScene extends Phaser.Scene {
     }, 200, 44);
 
     new UIButton(this, GAME_WIDTH / 2 - 100, btnY, 'Season', () => {
-      // TODO: SeasonScene
-      console.log('Season');
+      this.scene.start('Season');
     }, 200, 44);
 
     new UIButton(this, GAME_WIDTH / 2 + 120, btnY, 'Compete', () => {
