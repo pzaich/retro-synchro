@@ -109,12 +109,11 @@ export class TitleScene extends Phaser.Scene {
     switch (label) {
       case 'New Game':
         SaveManager.newGame();
-        // TODO: transition to ManageScene
-        console.log('New game started!', SaveManager.load());
+        this.scene.start('Manage');
         break;
       case 'Continue':
-        // TODO: transition to ManageScene
-        console.log('Continue game!', SaveManager.load());
+        SaveManager.load();
+        this.scene.start('Manage');
         break;
     }
   }

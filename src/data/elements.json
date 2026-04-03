@@ -1,0 +1,178 @@
+[
+  {
+    "id": "back-layout",
+    "name": "Back Layout",
+    "category": "position",
+    "tier": 1,
+    "difficulty": 0.5,
+    "description": "Body floats straight, face-up on surface, sculling under hips"
+  },
+  {
+    "id": "front-layout",
+    "name": "Front Layout",
+    "category": "position",
+    "tier": 1,
+    "difficulty": 0.5,
+    "description": "Body floats straight, face-down on surface, sculling by chest"
+  },
+  {
+    "id": "tub",
+    "name": "Tub",
+    "category": "position",
+    "tier": 1,
+    "difficulty": 0.6,
+    "description": "Both legs pulled to chest, shins and feet parallel on surface"
+  },
+  {
+    "id": "ballet-leg",
+    "name": "Ballet Leg",
+    "category": "position",
+    "tier": 1,
+    "difficulty": 0.8,
+    "description": "Back layout with one leg extended perpendicular to body"
+  },
+  {
+    "id": "inverted-tuck",
+    "name": "Inverted Tuck",
+    "category": "position",
+    "tier": 1,
+    "difficulty": 0.7,
+    "description": "Body curled in tuck position while inverted underwater"
+  },
+  {
+    "id": "support-scull",
+    "name": "Support Scull",
+    "category": "scull",
+    "tier": 1,
+    "difficulty": 0.4,
+    "description": "Forearms at 90 degrees, moved back and forth to support body"
+  },
+  {
+    "id": "propeller-scull",
+    "name": "Propeller Scull",
+    "category": "scull",
+    "tier": 1,
+    "difficulty": 0.5,
+    "description": "Propels the body headfirst across the surface"
+  },
+  {
+    "id": "eggbeater-kick",
+    "name": "Eggbeater Kick",
+    "category": "scull",
+    "tier": 1,
+    "difficulty": 0.6,
+    "description": "Alternating circular breaststroke kick for treading and lifting"
+  },
+  {
+    "id": "spin-180",
+    "name": "Spin 180",
+    "category": "spin",
+    "tier": 1,
+    "difficulty": 0.8,
+    "description": "Half rotation while in vertical position"
+  },
+  {
+    "id": "double-ballet-leg",
+    "name": "Double Ballet Leg",
+    "category": "position",
+    "tier": 2,
+    "difficulty": 1.0,
+    "description": "Both legs extended and held perpendicular to the body"
+  },
+  {
+    "id": "flamingo",
+    "name": "Flamingo",
+    "category": "position",
+    "tier": 2,
+    "difficulty": 1.1,
+    "description": "Ballet leg with bottom leg pulled into chest, shin touching knee"
+  },
+  {
+    "id": "crane",
+    "name": "Crane",
+    "category": "position",
+    "tier": 2,
+    "difficulty": 1.2,
+    "description": "Vertical body, one leg vertical, other at 90-degree L shape"
+  },
+  {
+    "id": "back-tuck-somersault",
+    "name": "Back Tuck Somersault",
+    "category": "figure",
+    "tier": 2,
+    "difficulty": 1.4,
+    "description": "From back layout, full 360-degree backward rotation"
+  },
+  {
+    "id": "porpoise",
+    "name": "Porpoise",
+    "category": "figure",
+    "tier": 2,
+    "difficulty": 1.5,
+    "description": "Rise to vertical position from a submerged approach"
+  },
+  {
+    "id": "tower",
+    "name": "Tower",
+    "category": "figure",
+    "tier": 2,
+    "difficulty": 1.6,
+    "description": "Front layout to pike, lift one leg to crane, other to vertical"
+  },
+  {
+    "id": "spin-up-360",
+    "name": "Spin Up 360",
+    "category": "spin",
+    "tier": 2,
+    "difficulty": 1.3,
+    "description": "Full ascending spin, rising while rotating 360 degrees"
+  },
+  {
+    "id": "torpedo-scull",
+    "name": "Torpedo Scull",
+    "category": "scull",
+    "tier": 2,
+    "difficulty": 0.9,
+    "description": "Propels body feet-first in a streamlined position"
+  },
+  {
+    "id": "circle",
+    "name": "Circle",
+    "category": "formation",
+    "tier": 1,
+    "difficulty": 0.3,
+    "description": "All swimmers arranged in a ring, often rotating"
+  },
+  {
+    "id": "straight-line",
+    "name": "Straight Line",
+    "category": "formation",
+    "tier": 1,
+    "difficulty": 0.2,
+    "description": "All swimmers in a single row"
+  },
+  {
+    "id": "diagonal-line",
+    "name": "Diagonal Line",
+    "category": "formation",
+    "tier": 1,
+    "difficulty": 0.3,
+    "description": "Swimmers in an angled line across the pool"
+  },
+  {
+    "id": "v-formation",
+    "name": "V-Formation",
+    "category": "formation",
+    "tier": 2,
+    "difficulty": 0.5,
+    "description": "Swimmers in a V or chevron shape"
+  },
+  {
+    "id": "diamond",
+    "name": "Diamond",
+    "category": "formation",
+    "tier": 2,
+    "difficulty": 0.6,
+    "description": "Four or more swimmers forming a diamond shape"
+  }
+]
