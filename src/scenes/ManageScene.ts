@@ -88,8 +88,7 @@ export class ManageScene extends Phaser.Scene {
     // Bottom navigation buttons
     const btnY = GAME_HEIGHT - 70;
     new UIButton(this, GAME_WIDTH / 2 - 320, btnY, 'Edit Routine', () => {
-      // TODO: RoutineEditorScene
-      console.log('Edit Routine');
+      this.scene.start('RoutineEditor');
     }, 200, 44);
 
     new UIButton(this, GAME_WIDTH / 2 - 100, btnY, 'Season', () => {
