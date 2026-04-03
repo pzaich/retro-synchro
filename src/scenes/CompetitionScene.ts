@@ -59,17 +59,80 @@ export class CompetitionScene extends Phaser.Scene {
     this.result = scoreRoutine(routine, state.team.swimmers, this.elementLookup);
     this.currentElementIndex = 0;
 
-    // Draw pool
-    this.drawPool();
+    // Show pre-competition screen first
+    this.showPreCompetition(state.team.name);
+  }
 
-    // Create swimmer sprites
-    this.createSwimmers();
+  private showPreCompetition(teamName: string): void {
+    // Overlay background
+    const overlay = this.add.graphics();
+    overlay.fillStyle(0x1a1a2e, 0.95);
+    overlay.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-    // UI overlays
-    this.createUI();
+    // Title
+    this.add.text(GAME_WIDTH / 2, 80, 'COMPETITION', {
+      fontFamily: 'monospace', fontSize: '36px', color: '#f0c040', fontStyle: 'bold',
+    }).setOrigin(0.5);
 
-    // Start the routine playback
-    this.time.delayedCall(800, () => this.playNextElement());
+    // VS display
+    this.add.text(GAME_WIDTH / 2 - 250, 180, teamName, {
+      fontFamily: 'monospace', fontSize: '28px', color: '#bbe1fa', fontStyle: 'bold',
+    }).setOrigin(0.5);
+
+    this.add.text(GAME_WIDTH / 2, 180, 'VS', {
+      fontFamily: 'monospace', fontSize: '24px', color: '#555555',
+    }).setOrigin(0.5);
+
+    this.add.text(GAME_WIDTH / 2 + 250, 180, this.opponent.team.name, {
+      fontFamily: 'monospace', fontSize: '28px', color: '#e74c3c', fontStyle: 'bold',
+    }).setOrigin(0.5);
+
+    // Opponent info
+    const styleLabels = { aggressive: 'Aggressive', safe: 'Conservative', balanced: 'Balanced' };
+    this.add.text(GAME_WIDTH / 2 + 250, 220, `Style: ${styleLabels[this.opponent.style]}`, {
+      fontFamily: 'monospace', fontSize: '14px', color: '#3282b8',
+    }).setOrigin(0.5);
+
+    // Your routine info
+    const routine = GameState.getInstance().get().routines[0]!;
+    this.add.text(GAME_WIDTH / 2 - 250, 220, `${routine.slots.length} elements`, {
+      fontFamily: 'monospace', fontSize: '14px', color: '#3282b8',
+    }).setOrigin(0.5);
+
+    // Start button
+    const startBtn = this.add.text(GAME_WIDTH / 2, 350, '[ START ROUTINE ]', {
+      fontFamily: 'monospace', fontSize: '24px', color: '#2ecc71', fontStyle: 'bold',
+    }).setOrigin(0.5);
+    startBtn.setInteractive({ useHandCursor: true });
+    startBtn.on('pointerover', () => startBtn.setColor('#f0c040'));
+    startBtn.on('pointerout', () => startBtn.setColor('#2ecc71'));
+    startBtn.on('pointerdown', () => {
+      // Fade out overlay and start
+      this.tweens.add({
+        targets: [overlay, ...this.children.list.filter(c => c !== overlay)],
+        alpha: 0,
+        duration: 400,
+        onComplete: () => {
+          // Remove all pre-comp elements
+          this.children.removeAll();
+
+          // Now build the competition view
+          this.drawPool();
+          this.createSwimmers();
+          this.createUI();
+          this.time.delayedCall(600, () => this.playNextElement());
+        },
+      });
+    });
+
+    // Back button
+    const backBtn = this.add.text(GAME_WIDTH / 2, 420, '[ BACK TO TEAM ]', {
+      fontFamily: 'monospace', fontSize: '16px', color: '#888888',
+    }).setOrigin(0.5);
+    backBtn.setInteractive({ useHandCursor: true });
+    backBtn.on('pointerover', () => backBtn.setColor('#ffffff'));
+    backBtn.on('pointerout', () => backBtn.setColor('#888888'));
+    backBtn.on('pointerdown', () => this.scene.start('Manage'));
   }
 
   private showNoRoutine(): void {
@@ -246,10 +309,8 @@ export class CompetitionScene extends Phaser.Scene {
   }
 
   private playElementAction(elemScore: ElementScore): void {
-    // Visual feedback based on success
     const actionDuration = 600;
 
-    // Color feedback on swimmers
     const color = elemScore.success === 'clean' ? 0x2ecc71
       : elemScore.success === 'partial' ? 0xf0c040
       : 0xe74c3c;
@@ -257,11 +318,14 @@ export class CompetitionScene extends Phaser.Scene {
     this.swimmerSprites.forEach(sprite => {
       sprite.setFillStyle(color);
 
+      // Splash particles
+      this.createSplash(sprite.x, sprite.y, elemScore.success === 'clean' ? 6 : 3);
+
       // Pulse animation
       this.tweens.add({
         targets: sprite,
-        scaleX: 1.3,
-        scaleY: 1.3,
+        scaleX: 1.4,
+        scaleY: 1.4,
         duration: actionDuration / 2,
         yoyo: true,
         ease: 'Sine.easeInOut',
@@ -274,11 +338,22 @@ export class CompetitionScene extends Phaser.Scene {
       if (elemScore.success === 'fail') {
         this.tweens.add({
           targets: sprite,
-          x: sprite.x + 8,
+          x: sprite.x + 10,
           duration: 80,
           yoyo: true,
-          repeat: 3,
+          repeat: 4,
           ease: 'Sine.easeInOut',
+        });
+      }
+
+      // Clean: brief rotation flourish
+      if (elemScore.success === 'clean') {
+        this.tweens.add({
+          targets: sprite,
+          angle: 360,
+          duration: actionDuration,
+          ease: 'Sine.easeInOut',
+          onComplete: () => { sprite.angle = 0; },
         });
       }
     });
@@ -327,6 +402,11 @@ export class CompetitionScene extends Phaser.Scene {
   private finishRoutine(): void {
     this.elementLabel.setText('Routine Complete!');
 
+    // Final splash celebration
+    this.swimmerSprites.forEach(sprite => {
+      this.createSplash(sprite.x, sprite.y, 10);
+    });
+
     // Brief pause then show results
     this.time.delayedCall(1500, () => {
       this.scene.start('Results', {
@@ -335,5 +415,29 @@ export class CompetitionScene extends Phaser.Scene {
         opponentName: this.opponent.team.name,
       });
     });
+  }
+
+  private createSplash(x: number, y: number, count: number): void {
+    for (let i = 0; i < count; i++) {
+      const particle = this.add.circle(
+        x, y,
+        2 + Math.random() * 2,
+        COLORS.waterLight,
+        0.7,
+      );
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 30 + Math.random() * 40;
+      this.tweens.add({
+        targets: particle,
+        x: x + Math.cos(angle) * speed,
+        y: y + Math.sin(angle) * speed,
+        alpha: 0,
+        scaleX: 0.2,
+        scaleY: 0.2,
+        duration: 400 + Math.random() * 300,
+        ease: 'Power2',
+        onComplete: () => particle.destroy(),
+      });
+    }
   }
 }

@@ -174,5 +174,216 @@
     "tier": 2,
     "difficulty": 0.6,
     "description": "Four or more swimmers forming a diamond shape"
+  },
+
+  {
+    "id": "knight",
+    "name": "Knight",
+    "category": "position",
+    "tier": 3,
+    "difficulty": 1.5,
+    "description": "Surface arch with one leg lifted to vertical"
+  },
+  {
+    "id": "split-position",
+    "name": "Split Position",
+    "category": "position",
+    "tier": 3,
+    "difficulty": 1.6,
+    "description": "Upside-down splits, one leg forward, one back on surface"
+  },
+  {
+    "id": "barracuda",
+    "name": "Barracuda",
+    "category": "figure",
+    "tier": 3,
+    "difficulty": 1.8,
+    "description": "From submerged back pike, rapid upward thrust to vertical"
+  },
+  {
+    "id": "front-walkover",
+    "name": "Front Walkover",
+    "category": "figure",
+    "tier": 3,
+    "difficulty": 1.9,
+    "description": "Front layout through pike, crane, split to back layout in a continuous arc"
+  },
+  {
+    "id": "aurora",
+    "name": "Aurora",
+    "category": "figure",
+    "tier": 3,
+    "difficulty": 2.0,
+    "description": "Front layout to somersault to submerged double ballet leg to knight"
+  },
+  {
+    "id": "ariana",
+    "name": "Ariana",
+    "category": "figure",
+    "tier": 3,
+    "difficulty": 2.0,
+    "description": "Walkover back to split position, hips rotating 180 degrees"
+  },
+  {
+    "id": "london",
+    "name": "London",
+    "category": "figure",
+    "tier": 3,
+    "difficulty": 2.1,
+    "description": "Ballet leg to partial somersault, trunk unrolls to vertical"
+  },
+  {
+    "id": "barrel-scull",
+    "name": "Barrel Scull",
+    "category": "scull",
+    "tier": 3,
+    "difficulty": 1.4,
+    "description": "Creates rotation of the body along its long axis"
+  },
+  {
+    "id": "combined-spin-720",
+    "name": "Combined Spin 360+360",
+    "category": "spin",
+    "tier": 3,
+    "difficulty": 1.8,
+    "description": "Ascending spin followed by descending spin, 720 total"
+  },
+  {
+    "id": "twist-360",
+    "name": "Twist 360",
+    "category": "spin",
+    "tier": 3,
+    "difficulty": 1.6,
+    "description": "Full rotation at constant height, no ascending or descending"
+  },
+  {
+    "id": "balance-stack",
+    "name": "Balance Stack",
+    "category": "lift",
+    "tier": 3,
+    "difficulty": 2.0,
+    "description": "Featured swimmer stands on support swimmers in head-up position"
+  },
+  {
+    "id": "platform-lift",
+    "name": "Platform Lift",
+    "category": "lift",
+    "tier": 3,
+    "difficulty": 2.2,
+    "description": "Team forms stable base, featured swimmer lifted to pose"
+  },
+  {
+    "id": "star-formation",
+    "name": "Star / Pinwheel",
+    "category": "formation",
+    "tier": 3,
+    "difficulty": 0.8,
+    "description": "Swimmers radiating from center point in multi-armed pattern"
+  },
+
+  {
+    "id": "cyclone-open-180",
+    "name": "Cyclone Open 180",
+    "category": "figure",
+    "tier": 4,
+    "difficulty": 2.2,
+    "description": "Figure featuring an open 180-degree rotation"
+  },
+  {
+    "id": "swordfish-straight",
+    "name": "Swordfish Straight Leg",
+    "category": "figure",
+    "tier": 4,
+    "difficulty": 2.3,
+    "description": "Figure with straight-leg Ariana rotation"
+  },
+  {
+    "id": "albatross-spin-360",
+    "name": "Albatross Spin Up 360",
+    "category": "figure",
+    "tier": 4,
+    "difficulty": 2.4,
+    "description": "Complex figure ending with 360-degree ascending spin"
+  },
+  {
+    "id": "flying-fish-360",
+    "name": "Flying Fish Spinning 360",
+    "category": "figure",
+    "tier": 4,
+    "difficulty": 2.5,
+    "description": "Figure with a full 360-degree spinning movement"
+  },
+  {
+    "id": "airborne-throw",
+    "name": "Airborne Throw",
+    "category": "lift",
+    "tier": 4,
+    "difficulty": 2.6,
+    "description": "Swimmer thrown into the air, fully disconnecting from team"
+  },
+  {
+    "id": "platform-dismount",
+    "name": "Platform with Dismount",
+    "category": "lift",
+    "tier": 4,
+    "difficulty": 2.5,
+    "description": "Platform lift ending with a jump or dismount"
+  },
+  {
+    "id": "continuous-spin-720",
+    "name": "Continuous Spin 720",
+    "category": "spin",
+    "tier": 4,
+    "difficulty": 2.2,
+    "description": "Rapid descending spin of at least 720 degrees"
+  },
+
+  {
+    "id": "whip-continuous-720",
+    "name": "Whip Continuous Spin 720",
+    "category": "figure",
+    "tier": 5,
+    "difficulty": 2.8,
+    "description": "Figure culminating in a rapid descending 720-degree continuous spin"
+  },
+  {
+    "id": "barracuda-airborne-split",
+    "name": "Barracuda Airborne Split",
+    "category": "figure",
+    "tier": 5,
+    "difficulty": 2.9,
+    "description": "Barracuda with rocket split, rejoining vertical with 180 spin"
+  },
+  {
+    "id": "flamingo-combined-spin",
+    "name": "Flamingo Combined 720",
+    "category": "figure",
+    "tier": 5,
+    "difficulty": 3.0,
+    "description": "Flamingo with combined ascending and descending 720-degree spin"
+  },
+  {
+    "id": "combined-airborne-balance",
+    "name": "Combined Airborne-Balance",
+    "category": "lift",
+    "tier": 5,
+    "difficulty": 3.0,
+    "description": "Combines airborne throw with balance stack in sequence"
+  },
+  {
+    "id": "rocket-split",
+    "name": "Rocket Split",
+    "category": "lift",
+    "tier": 5,
+    "difficulty": 2.8,
+    "description": "Swimmer executes an airborne split during a throw or thrust"
+  },
+  {
+    "id": "continuous-spin-1080",
+    "name": "Continuous Spin 1080",
+    "category": "spin",
+    "tier": 5,
+    "difficulty": 2.6,
+    "description": "Three full rapid descending rotations"
   }
 ]
