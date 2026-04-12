@@ -136,6 +136,30 @@
     "description": "Propels body feet-first in a streamlined position"
   },
   {
+    "id": "pair-boost",
+    "name": "Pair Boost",
+    "category": "lift",
+    "tier": 1,
+    "difficulty": 0.8,
+    "description": "Two swimmers lift a third briefly above the surface"
+  },
+  {
+    "id": "team-support-lift",
+    "name": "Team Support Lift",
+    "category": "lift",
+    "tier": 2,
+    "difficulty": 1.3,
+    "description": "Team forms a base to raise one swimmer to a held pose"
+  },
+  {
+    "id": "pair-acrobatic",
+    "name": "Pair Acrobatic",
+    "category": "lift",
+    "tier": 2,
+    "difficulty": 1.5,
+    "description": "Two-swimmer acrobatic with one flyer and one base"
+  },
+  {
     "id": "circle",
     "name": "Circle",
     "category": "formation",
@@ -385,5 +409,535 @@
     "tier": 5,
     "difficulty": 2.6,
     "description": "Three full rapid descending rotations"
+  },
+
+  {
+    "id": "vertical",
+    "name": "Vertical",
+    "category": "position",
+    "tier": 1,
+    "difficulty": 0.7,
+    "description": "Body straight and upside-down, perpendicular to surface"
+  },
+  {
+    "id": "surface-arch",
+    "name": "Surface Arch",
+    "category": "position",
+    "tier": 1,
+    "difficulty": 0.6,
+    "description": "Body arched at the surface, head in line with hips"
+  },
+  {
+    "id": "stationary-scull",
+    "name": "Stationary Scull",
+    "category": "scull",
+    "tier": 1,
+    "difficulty": 0.3,
+    "description": "Maintains position in the water without movement"
+  },
+  {
+    "id": "back-pike",
+    "name": "Back Pike",
+    "category": "position",
+    "tier": 2,
+    "difficulty": 1.0,
+    "description": "Body bent at hips in pike position while face-up"
+  },
+  {
+    "id": "front-pike",
+    "name": "Front Pike",
+    "category": "position",
+    "tier": 2,
+    "difficulty": 1.0,
+    "description": "Body bent at hips in pike position while face-down"
+  },
+  {
+    "id": "bent-knee",
+    "name": "Bent Knee (Heron)",
+    "category": "position",
+    "tier": 2,
+    "difficulty": 1.1,
+    "description": "Vertical body, one leg vertical, other bent with toe at knee"
+  },
+  {
+    "id": "fishtail",
+    "name": "Fishtail",
+    "category": "position",
+    "tier": 2,
+    "difficulty": 1.2,
+    "description": "Like crane but bottom foot must be at the surface"
+  },
+  {
+    "id": "side-fishtail",
+    "name": "Side Fishtail",
+    "category": "position",
+    "tier": 2,
+    "difficulty": 1.2,
+    "description": "One leg vertical, other extended to the side creating a Y shape"
+  },
+  {
+    "id": "alligator-scull",
+    "name": "Alligator Scull",
+    "category": "scull",
+    "tier": 2,
+    "difficulty": 0.8,
+    "description": "Propels body headfirst in a back layout with arms at sides"
+  },
+  {
+    "id": "paddle-scull",
+    "name": "Paddle Scull",
+    "category": "scull",
+    "tier": 2,
+    "difficulty": 0.8,
+    "description": "Used for lateral or directional movement"
+  },
+  {
+    "id": "canoe-scull",
+    "name": "Canoe Scull",
+    "category": "scull",
+    "tier": 2,
+    "difficulty": 0.9,
+    "description": "One-armed scull for turning and curved travel"
+  },
+  {
+    "id": "spin-down-360",
+    "name": "Spin Down 360",
+    "category": "spin",
+    "tier": 2,
+    "difficulty": 1.3,
+    "description": "Full descending spin while sinking in vertical position"
+  },
+  {
+    "id": "twist-180",
+    "name": "Twist 180",
+    "category": "spin",
+    "tier": 2,
+    "difficulty": 1.1,
+    "description": "180-degree rotation at constant height, no ascending"
+  },
+  {
+    "id": "blossom",
+    "name": "Blossom",
+    "category": "figure",
+    "tier": 2,
+    "difficulty": 1.5,
+    "description": "Multi-movement figure performed at Grade 2 level"
+  },
+  {
+    "id": "catalina-rotation",
+    "name": "Catalina Rotation",
+    "category": "figure",
+    "tier": 2,
+    "difficulty": 1.6,
+    "description": "Rotation transition used within larger figures"
+  },
+  {
+    "id": "neptunus",
+    "name": "Neptunus",
+    "category": "figure",
+    "tier": 2,
+    "difficulty": 1.8,
+    "description": "Multi-movement competition figure at Grade 2 level"
+  },
+  {
+    "id": "square-block",
+    "name": "Square / Block",
+    "category": "formation",
+    "tier": 2,
+    "difficulty": 0.5,
+    "description": "Swimmers forming a rectangle or square grid"
+  },
+  {
+    "id": "triangle",
+    "name": "Triangle",
+    "category": "formation",
+    "tier": 2,
+    "difficulty": 0.5,
+    "description": "Swimmers in a triangular arrangement"
+  },
+  {
+    "id": "submerged-back-pike",
+    "name": "Submerged Back Pike",
+    "category": "position",
+    "tier": 3,
+    "difficulty": 1.4,
+    "description": "Back pike position performed fully submerged"
+  },
+  {
+    "id": "saturn",
+    "name": "Saturn",
+    "category": "figure",
+    "tier": 3,
+    "difficulty": 2.0,
+    "description": "Complex multi-position figure with transitions"
+  },
+  {
+    "id": "spinning-scull",
+    "name": "Spinning Scull",
+    "category": "scull",
+    "tier": 3,
+    "difficulty": 1.5,
+    "description": "Generates rapid rotation while in vertical position"
+  },
+  {
+    "id": "split-scull",
+    "name": "Split Scull",
+    "category": "scull",
+    "tier": 3,
+    "difficulty": 1.4,
+    "description": "Used to support body during split position elements"
+  },
+  {
+    "id": "totem-scull",
+    "name": "Totem Scull",
+    "category": "scull",
+    "tier": 3,
+    "difficulty": 1.6,
+    "description": "Specialized scull for totem-style vertical support"
+  },
+  {
+    "id": "team-acrobatic",
+    "name": "Team Acrobatic",
+    "category": "lift",
+    "tier": 3,
+    "difficulty": 2.1,
+    "description": "Acrobatic involving four or more swimmers"
+  },
+  {
+    "id": "staggered-lines",
+    "name": "Staggered Lines",
+    "category": "formation",
+    "tier": 3,
+    "difficulty": 0.7,
+    "description": "Parallel lines with offset positions for visual depth"
+  },
+  {
+    "id": "pattern-change",
+    "name": "Pattern Change",
+    "category": "formation",
+    "tier": 3,
+    "difficulty": 0.9,
+    "description": "Morphing from one formation to another mid-choreography (+0.3 bonus)"
+  },
+  {
+    "id": "ipanema-spinning-180",
+    "name": "Ipanema Spinning 180",
+    "category": "figure",
+    "tier": 4,
+    "difficulty": 2.2,
+    "description": "Figure with a 180-degree spinning component"
+  },
+  {
+    "id": "airborne-jump",
+    "name": "Airborne Jump",
+    "category": "lift",
+    "tier": 4,
+    "difficulty": 2.4,
+    "description": "Swimmer jumps from construction with a repulsion phase"
+  },
+  {
+    "id": "balance-stack-headdown",
+    "name": "Balance Stack (Head Down)",
+    "category": "lift",
+    "tier": 4,
+    "difficulty": 2.5,
+    "description": "Featured swimmer on support in vertical head-down position"
+  },
+  {
+    "id": "combined-airborne-platform",
+    "name": "Combined Airborne-Platform",
+    "category": "lift",
+    "tier": 5,
+    "difficulty": 2.9,
+    "description": "Combines airborne throw with platform lift characteristics"
+  },
+  {
+    "id": "head-first-boost",
+    "name": "Head First Boost & Descent",
+    "category": "hybrid",
+    "tier": 3,
+    "difficulty": 1.8,
+    "description": "Eggbeater pop upward from underwater, then controlled descent"
+  },
+  {
+    "id": "walkover-transition",
+    "name": "Walkover Transition",
+    "category": "hybrid",
+    "tier": 3,
+    "difficulty": 1.9,
+    "description": "Arcing movement through split, crane, and knight positions"
+  },
+  {
+    "id": "thrust-combo",
+    "name": "Thrust Combo",
+    "category": "hybrid",
+    "tier": 4,
+    "difficulty": 2.3,
+    "description": "Rapid upward thrust from submerged pike chained with a spin"
+  },
+  {
+    "id": "custom-hybrid-5",
+    "name": "Custom Hybrid (5-skill)",
+    "category": "hybrid",
+    "tier": 5,
+    "difficulty": 2.7,
+    "description": "Coach-designed sequence of 5+ skills with declared difficulty"
+  },
+  {
+    "id": "custom-hybrid-7",
+    "name": "Custom Hybrid (7-skill)",
+    "category": "hybrid",
+    "tier": 5,
+    "difficulty": 3.2,
+    "description": "Advanced coach-designed sequence of 7 chained skills"
+  },
+
+  {
+    "id": "sailboat",
+    "name": "Sailboat",
+    "category": "position",
+    "tier": 1,
+    "difficulty": 0.6,
+    "description": "Back layout with one arm extended straight up like a sail"
+  },
+  {
+    "id": "pencil",
+    "name": "Pencil",
+    "category": "position",
+    "tier": 1,
+    "difficulty": 0.5,
+    "description": "Perfectly straight body held vertical with toes at surface"
+  },
+  {
+    "id": "starfish-float",
+    "name": "Starfish Float",
+    "category": "position",
+    "tier": 1,
+    "difficulty": 0.4,
+    "description": "Arms and legs spread wide in a back float, star shape"
+  },
+  {
+    "id": "oyster",
+    "name": "Oyster",
+    "category": "position",
+    "tier": 1,
+    "difficulty": 0.7,
+    "description": "Pike position at the surface then open flat, like an oyster shell"
+  },
+  {
+    "id": "dolphin-kick",
+    "name": "Dolphin Kick",
+    "category": "scull",
+    "tier": 1,
+    "difficulty": 0.5,
+    "description": "Undulating full-body kick for speed and power underwater"
+  },
+  {
+    "id": "log-roll",
+    "name": "Log Roll",
+    "category": "spin",
+    "tier": 1,
+    "difficulty": 0.6,
+    "description": "Body rotates along its long axis while floating at the surface"
+  },
+  {
+    "id": "water-wheel",
+    "name": "Water Wheel",
+    "category": "formation",
+    "tier": 1,
+    "difficulty": 0.4,
+    "description": "Swimmers rotate like spokes of a wheel, head to toe"
+  },
+  {
+    "id": "chain-link",
+    "name": "Chain Link",
+    "category": "formation",
+    "tier": 1,
+    "difficulty": 0.3,
+    "description": "Swimmers link arms or legs in a connected chain"
+  },
+  {
+    "id": "double-kick-lift",
+    "name": "Double Kick Lift",
+    "category": "lift",
+    "tier": 1,
+    "difficulty": 0.9,
+    "description": "Two bases kick a flyer briefly above the water"
+  },
+  {
+    "id": "mermaid-tail",
+    "name": "Mermaid Tail",
+    "category": "position",
+    "tier": 2,
+    "difficulty": 1.0,
+    "description": "Legs pressed together and swept up in an arcing tail motion"
+  },
+  {
+    "id": "corkscrew",
+    "name": "Corkscrew",
+    "category": "spin",
+    "tier": 2,
+    "difficulty": 1.2,
+    "description": "Descending spiral with body rotating and sinking simultaneously"
+  },
+  {
+    "id": "scissors-kick",
+    "name": "Scissors Kick",
+    "category": "figure",
+    "tier": 2,
+    "difficulty": 1.3,
+    "description": "Alternating leg splits performed rapidly while vertical"
+  },
+  {
+    "id": "reverse-scull",
+    "name": "Reverse Scull",
+    "category": "scull",
+    "tier": 2,
+    "difficulty": 0.9,
+    "description": "Sculling in reverse direction for backward travel"
+  },
+  {
+    "id": "fan-formation",
+    "name": "Fan Formation",
+    "category": "formation",
+    "tier": 2,
+    "difficulty": 0.5,
+    "description": "Swimmers spread in a fan or semicircle shape"
+  },
+  {
+    "id": "cross-formation",
+    "name": "Cross Formation",
+    "category": "formation",
+    "tier": 2,
+    "difficulty": 0.6,
+    "description": "Swimmers arranged in a plus or cross pattern"
+  },
+  {
+    "id": "tandem-lift",
+    "name": "Tandem Lift",
+    "category": "lift",
+    "tier": 2,
+    "difficulty": 1.4,
+    "description": "Two swimmers lifted simultaneously by the rest of the team"
+  },
+  {
+    "id": "vertical-descent",
+    "name": "Vertical Descent",
+    "category": "hybrid",
+    "tier": 2,
+    "difficulty": 1.1,
+    "description": "Controlled sinking in vertical at the tempo of the music"
+  },
+  {
+    "id": "spiral-descent",
+    "name": "Spiral Descent",
+    "category": "figure",
+    "tier": 3,
+    "difficulty": 1.7,
+    "description": "Spinning while descending underwater in a controlled spiral"
+  },
+  {
+    "id": "rocket-thrust",
+    "name": "Rocket Thrust",
+    "category": "figure",
+    "tier": 3,
+    "difficulty": 1.9,
+    "description": "Explosive vertical thrust from underwater to maximum height"
+  },
+  {
+    "id": "helicopter",
+    "name": "Helicopter",
+    "category": "spin",
+    "tier": 3,
+    "difficulty": 1.7,
+    "description": "Horizontal rotation at the surface with arms acting as blades"
+  },
+  {
+    "id": "chain-spin",
+    "name": "Chain Spin",
+    "category": "formation",
+    "tier": 3,
+    "difficulty": 1.0,
+    "description": "Linked swimmers rotate together as a connected unit"
+  },
+  {
+    "id": "pyramid-lift",
+    "name": "Pyramid Lift",
+    "category": "lift",
+    "tier": 3,
+    "difficulty": 2.3,
+    "description": "Multi-tier lift forming a human pyramid above the water"
+  },
+  {
+    "id": "walkout-back",
+    "name": "Walkout Back",
+    "category": "figure",
+    "tier": 3,
+    "difficulty": 1.8,
+    "description": "From split position, back leg sweeps over to back layout"
+  },
+  {
+    "id": "double-spin-360",
+    "name": "Double Spin 360",
+    "category": "spin",
+    "tier": 4,
+    "difficulty": 2.1,
+    "description": "Two consecutive 360 spins without pause"
+  },
+  {
+    "id": "catapult-throw",
+    "name": "Catapult Throw",
+    "category": "lift",
+    "tier": 4,
+    "difficulty": 2.6,
+    "description": "Team launches swimmer high into the air with catapult motion"
+  },
+  {
+    "id": "mirror-formation",
+    "name": "Mirror Formation",
+    "category": "formation",
+    "tier": 4,
+    "difficulty": 1.2,
+    "description": "Two halves of the team mirror each other perfectly"
+  },
+  {
+    "id": "cascade-hybrid",
+    "name": "Cascade Hybrid",
+    "category": "hybrid",
+    "tier": 4,
+    "difficulty": 2.4,
+    "description": "Sequence of skills performed in cascading order across the team"
+  },
+  {
+    "id": "triple-spin-1080",
+    "name": "Triple Spin 1080",
+    "category": "spin",
+    "tier": 5,
+    "difficulty": 2.8,
+    "description": "Three full rotations executed with perfect control"
+  },
+  {
+    "id": "tower-launch",
+    "name": "Tower Launch",
+    "category": "lift",
+    "tier": 5,
+    "difficulty": 3.1,
+    "description": "Full team tower followed by top swimmer launch and aerial"
+  },
+  {
+    "id": "kaleidoscope",
+    "name": "Kaleidoscope",
+    "category": "formation",
+    "tier": 5,
+    "difficulty": 1.5,
+    "description": "Constantly shifting symmetrical pattern like a kaleidoscope"
+  },
+  {
+    "id": "grand-finale-hybrid",
+    "name": "Grand Finale Hybrid",
+    "category": "hybrid",
+    "tier": 5,
+    "difficulty": 3.5,
+    "description": "Ultimate 8+ skill chain designed as a show-stopping closer"
   }
 ]

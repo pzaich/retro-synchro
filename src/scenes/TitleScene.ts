@@ -108,8 +108,7 @@ export class TitleScene extends Phaser.Scene {
   private onMenuSelect(label: string): void {
     switch (label) {
       case 'New Game':
-        SaveManager.newGame();
-        this.scene.start('Manage');
+        this.scene.start('CountrySelect');
         break;
       case 'Continue':
         SaveManager.load();

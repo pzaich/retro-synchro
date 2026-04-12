@@ -1,25 +1,11 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, COLORS } from '../config';
-import { GameState } from '../systems/GameState';
+import { GameState, SeasonMatch, generateSeasonMatches } from '../systems/GameState';
 import { UIButton } from '../ui/UIButton';
 import { UIPanel } from '../ui/UIPanel';
 
-interface Tournament {
-  name: string;
-  tier: number;
-  description: string;
-}
-
-const SEASON_TOURNAMENTS: Tournament[] = [
-  { name: 'Regional Qualifier', tier: 1, description: 'Local competition to prove your team' },
-  { name: 'City Championship', tier: 1, description: 'Compete against city rivals' },
-  { name: 'State Meet', tier: 2, description: 'Best teams in the state face off' },
-  { name: 'Regional Finals', tier: 2, description: 'Top regional teams compete' },
-  { name: 'National Open', tier: 3, description: 'Open national competition' },
-  { name: 'National Championship', tier: 3, description: 'The best in the country' },
-  { name: 'International Invitational', tier: 4, description: 'Global teams invited' },
-  { name: 'World Cup', tier: 4, description: 'The pinnacle of artistic swimming' },
-];
+const TIER_COLORS = [0x3282b8, 0x2ecc71, 0xf0c040, 0xe74c3c, 0x9b59b6];
+const TYPE_LABELS: Record<string, string> = { regular: '', nationals: 'NATL', olympics: 'OLY' };
 
 export class SeasonScene extends Phaser.Scene {
   constructor() {
@@ -28,122 +14,159 @@ export class SeasonScene extends Phaser.Scene {
 
   create(): void {
     const state = GameState.getInstance().get();
+
+    // Generate matches if missing (old saves)
+    if (!state.seasonMatches || state.seasonMatches.length === 0) {
+      state.seasonMatches = generateSeasonMatches(state.seasonNumber ?? 1);
+    }
+
+    const matches = state.seasonMatches;
     const currentIndex = state.seasonIndex;
+    const seasonNum = state.seasonNumber ?? 1;
+    const country = state.country ?? 'USA';
 
     // Header
     new UIButton(this, 20, 16, '< Back', () => {
       this.scene.start('Manage');
     }, 120, 36);
 
-    this.add.text(GAME_WIDTH / 2, 34, 'SEASON CALENDAR', {
-      fontFamily: 'monospace',
-      fontSize: '28px',
-      color: '#bbe1fa',
-      fontStyle: 'bold',
+    this.add.text(GAME_WIDTH / 2, 24, `SEASON ${seasonNum}`, {
+      fontFamily: 'monospace', fontSize: '26px', color: '#bbe1fa', fontStyle: 'bold',
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 62, `Competitions Won: ${state.competitionsWon}`, {
-      fontFamily: 'monospace',
-      fontSize: '16px',
-      color: '#3282b8',
+    this.add.text(GAME_WIDTH / 2, 50, `${country}  |  Wins: ${state.competitionsWon}  |  Nationals Won: ${state.nationalsWon ?? 0}  |  Olympic Gold: ${state.olympicMedals?.gold ?? 0}`, {
+      fontFamily: 'monospace', fontSize: '11px', color: '#3282b8',
     }).setOrigin(0.5);
 
-    // Tournament list
-    const panelX = 80;
-    const panelY = 90;
-    const panelW = GAME_WIDTH - 160;
-    new UIPanel(this, panelX, panelY, panelW, 520);
+    // Panel
+    const panelX = 40;
+    const panelY = 68;
+    const panelW = GAME_WIDTH - 80;
+    const panelH = 590;
+    new UIPanel(this, panelX, panelY, panelW, panelH);
 
-    SEASON_TOURNAMENTS.forEach((tournament, i) => {
-      const rowY = panelY + 16 + i * 62;
+    // Progress bar
+    const progBarX = panelX + 20;
+    const progBarY = panelY + 10;
+    const progBarW = panelW - 40;
+    const progGfx = this.add.graphics();
+    progGfx.fillStyle(COLORS.dark);
+    progGfx.fillRect(progBarX, progBarY, progBarW, 12);
+    const progPct = matches.length > 0 ? currentIndex / matches.length : 0;
+    progGfx.fillStyle(COLORS.green);
+    progGfx.fillRect(progBarX, progBarY, progBarW * progPct, 12);
+    progGfx.lineStyle(1, COLORS.panelBorder);
+    progGfx.strokeRect(progBarX, progBarY, progBarW, 12);
+    this.add.text(progBarX + progBarW / 2, progBarY + 6, `${Math.round(progPct * 100)}% — Match ${Math.min(currentIndex + 1, matches.length)} of ${matches.length}`, {
+      fontFamily: 'monospace', fontSize: '9px', color: '#ffffff',
+    }).setOrigin(0.5);
+
+    // Match list
+    const listY = progBarY + 22;
+    const matchH = 30;
+
+    matches.forEach((match: SeasonMatch, i: number) => {
+      const my = listY + i * (matchH + 2);
+      if (my + matchH > panelY + panelH - 6) return;
+
       const isCurrent = i === currentIndex;
       const isCompleted = i < currentIndex;
       const isLocked = i > currentIndex;
+      const isSpecial = match.type === 'nationals' || match.type === 'olympics';
 
-      // Status indicator
-      const gfx = this.add.graphics();
-      const indicatorX = panelX + 24;
-      const indicatorY = rowY + 24;
-
-      if (isCompleted) {
-        gfx.fillStyle(COLORS.green);
-        gfx.fillCircle(indicatorX, indicatorY, 10);
-        // Checkmark
-        gfx.lineStyle(2, 0xffffff);
-        gfx.beginPath();
-        gfx.moveTo(indicatorX - 5, indicatorY);
-        gfx.lineTo(indicatorX - 1, indicatorY + 4);
-        gfx.lineTo(indicatorX + 6, indicatorY - 4);
-        gfx.strokePath();
+      // Row bg
+      const rowGfx = this.add.graphics();
+      if (match.type === 'olympics') {
+        rowGfx.fillStyle(0x9b59b6, isCurrent ? 0.25 : isCompleted ? 0.08 : 0.03);
+      } else if (match.type === 'nationals') {
+        rowGfx.fillStyle(COLORS.gold, isCurrent ? 0.2 : isCompleted ? 0.06 : 0.02);
       } else if (isCurrent) {
-        gfx.fillStyle(COLORS.gold);
-        gfx.fillCircle(indicatorX, indicatorY, 10);
-        gfx.fillStyle(COLORS.dark);
-        gfx.fillCircle(indicatorX, indicatorY, 4);
+        rowGfx.fillStyle(COLORS.gold, 0.12);
+      } else if (isCompleted) {
+        rowGfx.fillStyle(COLORS.green, 0.05);
+      }
+      if (isCurrent || isCompleted || isSpecial) {
+        rowGfx.fillRect(panelX + 8, my, panelW - 16, matchH);
+      }
+
+      // Number
+      const numColor = isCompleted ? '#2ecc71' : isCurrent ? '#f0c040' : '#333333';
+      this.add.text(panelX + 18, my + matchH / 2, `${i + 1}`, {
+        fontFamily: 'monospace', fontSize: '11px', color: numColor,
+      }).setOrigin(0, 0.5);
+
+      // Status icon
+      const iconGfx = this.add.graphics();
+      const iconX = panelX + 40;
+      const iconY = my + matchH / 2;
+      if (isCompleted) {
+        iconGfx.fillStyle(COLORS.green);
+        iconGfx.fillCircle(iconX, iconY, 5);
+      } else if (isCurrent) {
+        iconGfx.fillStyle(COLORS.gold);
+        iconGfx.fillCircle(iconX, iconY, 5);
+        iconGfx.fillStyle(COLORS.dark);
+        iconGfx.fillCircle(iconX, iconY, 2);
       } else {
-        gfx.lineStyle(2, COLORS.panelBorder);
-        gfx.strokeCircle(indicatorX, indicatorY, 10);
+        iconGfx.lineStyle(1, COLORS.panelBorder, 0.3);
+        iconGfx.strokeCircle(iconX, iconY, 5);
       }
 
-      // Connecting line
-      if (i < SEASON_TOURNAMENTS.length - 1) {
-        gfx.lineStyle(1, isCompleted ? COLORS.green : COLORS.panelBorder, isCompleted ? 0.6 : 0.3);
-        gfx.lineBetween(indicatorX, indicatorY + 12, indicatorX, indicatorY + 50);
+      // Match name
+      let nameColor = isLocked ? '#444444' : isCurrent ? '#f0c040' : '#ffffff';
+      if (match.type === 'olympics' && !isLocked) nameColor = '#d4a0ff';
+      if (match.type === 'nationals' && !isLocked) nameColor = '#f0c040';
+
+      const nameText = isSpecial ? `★ ${match.name}` : match.name;
+      this.add.text(panelX + 56, my + matchH / 2, nameText, {
+        fontFamily: 'monospace', fontSize: '12px', color: nameColor,
+        fontStyle: (isCurrent || isSpecial) ? 'bold' : 'normal',
+      }).setOrigin(0, 0.5);
+
+      // Type badge for special events
+      if (isSpecial && !isLocked) {
+        const badgeColor = match.type === 'olympics' ? 0x9b59b6 : COLORS.gold;
+        const badgeLabel = TYPE_LABELS[match.type] ?? '';
+        const badge = this.add.graphics();
+        badge.fillStyle(badgeColor, 0.6);
+        badge.fillRoundedRect(panelX + panelW - 180, my + 4, 44, 22, 3);
+        this.add.text(panelX + panelW - 158, my + matchH / 2, badgeLabel, {
+          fontFamily: 'monospace', fontSize: '10px', color: '#ffffff',
+        }).setOrigin(0.5);
       }
-
-      // Tournament name
-      const nameColor = isLocked ? '#555555' : isCurrent ? '#f0c040' : '#ffffff';
-      this.add.text(panelX + 50, rowY + 6, tournament.name, {
-        fontFamily: 'monospace',
-        fontSize: '18px',
-        color: nameColor,
-        fontStyle: isCurrent ? 'bold' : 'normal',
-      });
-
-      // Description
-      this.add.text(panelX + 50, rowY + 28, tournament.description, {
-        fontFamily: 'monospace',
-        fontSize: '12px',
-        color: isLocked ? '#333333' : '#3282b8',
-      });
 
       // Tier badge
-      const tierColors = [0x3282b8, 0x2ecc71, 0xf0c040, 0xe74c3c];
-      const tierColor = tierColors[tournament.tier - 1] ?? COLORS.panelBorder;
-      const tierBadge = this.add.graphics();
-      tierBadge.fillStyle(tierColor, isLocked ? 0.3 : 0.8);
-      tierBadge.fillRoundedRect(panelX + panelW - 100, rowY + 10, 60, 24, 4);
-      this.add.text(panelX + panelW - 70, rowY + 22, `Tier ${tournament.tier}`, {
-        fontFamily: 'monospace',
-        fontSize: '12px',
-        color: isLocked ? '#555555' : '#ffffff',
+      const tierColor = TIER_COLORS[match.tier - 1] ?? COLORS.panelBorder;
+      const tBadge = this.add.graphics();
+      tBadge.fillStyle(tierColor, isLocked ? 0.15 : 0.6);
+      tBadge.fillRoundedRect(panelX + panelW - 120, my + 4, 40, 22, 3);
+      this.add.text(panelX + panelW - 100, my + matchH / 2, `T${match.tier}`, {
+        fontFamily: 'monospace', fontSize: '10px', color: isLocked ? '#444444' : '#ffffff',
       }).setOrigin(0.5);
 
-      // Compete button for current tournament
-      if (isCurrent) {
-        new UIButton(this, panelX + panelW - 220, rowY + 4, 'Compete!', () => {
-          this.scene.start('Competition');
-        }, 110, 36);
+      // Win / Compete
+      if (isCompleted) {
+        this.add.text(panelX + panelW - 60, my + matchH / 2, 'WIN', {
+          fontFamily: 'monospace', fontSize: '10px', color: '#2ecc71',
+        }).setOrigin(0.5);
       }
 
-      // Completed marker
-      if (isCompleted) {
-        this.add.text(panelX + panelW - 200, rowY + 16, 'COMPLETED', {
-          fontFamily: 'monospace',
-          fontSize: '12px',
-          color: '#2ecc71',
-        });
+      if (isCurrent) {
+        new UIButton(this, panelX + panelW - 120, my - 2, 'Compete!', () => {
+          this.scene.start('Competition');
+        }, 100, matchH + 4);
       }
     });
 
-    // Season complete message
-    if (currentIndex >= SEASON_TOURNAMENTS.length) {
-      this.add.text(GAME_WIDTH / 2, panelY + 540, 'SEASON COMPLETE! You are a champion!', {
-        fontFamily: 'monospace',
-        fontSize: '20px',
-        color: '#f0c040',
-        fontStyle: 'bold',
+    // Season complete
+    if (currentIndex >= matches.length && matches.length > 0) {
+      this.add.text(GAME_WIDTH / 2, panelY + panelH - 30, 'SEASON COMPLETE!', {
+        fontFamily: 'monospace', fontSize: '18px', color: '#f0c040', fontStyle: 'bold',
       }).setOrigin(0.5);
+
+      new UIButton(this, GAME_WIDTH / 2 - 100, panelY + panelH - 8, 'Claim Rewards!', () => {
+        this.scene.start('SeasonReward');
+      }, 200, 34);
     }
   }
 }

@@ -3,9 +3,9 @@ import { GAME_WIDTH, GAME_HEIGHT, COLORS } from '../config';
 import { GameState } from '../systems/GameState';
 import { SaveManager } from '../systems/SaveManager';
 import { SwimmerData } from '../entities/Swimmer';
-import { coachXpForLevel } from '../systems/ProgressionSystem';
 import { UIButton } from '../ui/UIButton';
 import { UIPanel } from '../ui/UIPanel';
+import { createSwimmerPortrait } from '../ui/SwimmerSprite';
 
 export class ManageScene extends Phaser.Scene {
   private swapSource: SwimmerData | null = null;
@@ -27,8 +27,8 @@ export class ManageScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Coach info line
-    const coachXpNeeded = coachXpForLevel(state.coachLevel);
-    this.add.text(GAME_WIDTH / 2, 54, `Coach Level ${state.coachLevel}  |  XP: ${state.coachXp}/${coachXpNeeded}  |  Wins: ${state.competitionsWon}`, {
+    const country = state.country ?? '';
+    this.add.text(GAME_WIDTH / 2, 54, `${country}  |  Coach Lv${state.coachLevel}  |  Season ${state.seasonNumber ?? 1}  |  Wins: ${state.competitionsWon}`, {
       fontFamily: 'monospace',
       fontSize: '13px',
       color: '#3282b8',
@@ -51,8 +51,9 @@ export class ManageScene extends Phaser.Scene {
 
     // Column headers
     const colY = panelY + 36;
-    const cols = { name: panelX + 20, art: panelX + 300, ath: panelX + 410, end: panelX + 520, lvl: panelX + 640, swap: panelX + 700 };
+    const cols = { name: panelX + 20, spec: panelX + 260, art: panelX + 370, ath: panelX + 470, end: panelX + 570, lvl: panelX + 670, swap: panelX + 720 };
     this.add.text(cols.name, colY, 'NAME', { fontFamily: 'monospace', fontSize: '12px', color: '#3282b8' });
+    this.add.text(cols.spec, colY, 'SPEC', { fontFamily: 'monospace', fontSize: '12px', color: '#3282b8' });
     this.add.text(cols.art, colY, 'ART', { fontFamily: 'monospace', fontSize: '12px', color: '#3282b8' });
     this.add.text(cols.ath, colY, 'ATH', { fontFamily: 'monospace', fontSize: '12px', color: '#3282b8' });
     this.add.text(cols.end, colY, 'END', { fontFamily: 'monospace', fontSize: '12px', color: '#3282b8' });
@@ -95,32 +96,39 @@ export class ManageScene extends Phaser.Scene {
 
     // Bottom navigation buttons
     const btnY = GAME_HEIGHT - 60;
-    new UIButton(this, GAME_WIDTH / 2 - 330, btnY, 'Edit Routine', () => {
+    const btnW = 160;
+    const btnGap = 10;
+    const totalBtnW = btnW * 4 + btnGap * 3;
+    const btnStartX = (GAME_WIDTH - totalBtnW) / 2;
+
+    new UIButton(this, btnStartX, btnY, 'Routine', () => {
       this.scene.start('RoutineEditor');
-    }, 200, 44);
+    }, btnW, 44);
 
-    new UIButton(this, GAME_WIDTH / 2 - 100, btnY, 'Season', () => {
+    new UIButton(this, btnStartX + btnW + btnGap, btnY, 'Trade', () => {
+      this.scene.start('Trade');
+    }, btnW, 44);
+
+    new UIButton(this, btnStartX + (btnW + btnGap) * 2, btnY, 'Season', () => {
       this.scene.start('Season');
-    }, 200, 44);
+    }, btnW, 44);
 
-    new UIButton(this, GAME_WIDTH / 2 + 130, btnY, 'Compete', () => {
-      this.scene.start('Competition');
-    }, 200, 44);
+    new UIButton(this, btnStartX + (btnW + btnGap) * 3, btnY, 'Compete', () => {
+      this.scene.start('Season');
+    }, btnW, 44);
   }
 
   private createSwimmerRow(
     swimmer: SwimmerData,
-    cols: { name: number; art: number; ath: number; end: number; lvl: number; swap: number },
+    cols: { name: number; spec: number; art: number; ath: number; end: number; lvl: number; swap: number },
     y: number,
     isAlternate: boolean,
   ): void {
     const nameColor = isAlternate ? '#888888' : '#ffffff';
 
-    // Swimmer icon
-    const icon = this.add.graphics();
-    const iconColor = isAlternate ? 0x555555 : COLORS.accent;
-    icon.fillStyle(iconColor);
-    icon.fillCircle(cols.name - 2, y + 8, 5);
+    // Swimmer portrait
+    const portrait = createSwimmerPortrait(this, cols.name, y + 8, swimmer, 'small');
+    if (isAlternate) portrait.setAlpha(0.5);
 
     // Name (clickable)
     const nameText = this.add.text(cols.name + 12, y, swimmer.name, {
@@ -133,6 +141,17 @@ export class ManageScene extends Phaser.Scene {
     nameText.on('pointerout', () => nameText.setColor(nameColor));
     nameText.on('pointerdown', () => {
       this.scene.start('SwimmerDetail', { swimmerId: swimmer.id });
+    });
+
+    // Specialty
+    const specColors: Record<string, string> = {
+      lifts: '#e74c3c', spins: '#f39c12', figures: '#9b59b6',
+      sculls: '#1abc9c', formations: '#2ecc71', 'all-rounder': '#3282b8',
+    };
+    const specLabel = swimmer.specialty === 'all-rounder' ? 'ALL' : swimmer.specialty.substring(0, 4).toUpperCase();
+    this.add.text(cols.spec, y + 2, specLabel, {
+      fontFamily: 'monospace', fontSize: '12px',
+      color: specColors[swimmer.specialty] ?? '#3282b8',
     });
 
     // Stat mini-bars

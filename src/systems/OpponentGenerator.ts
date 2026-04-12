@@ -38,20 +38,19 @@ export function generateOpponent(
   availableElements: ElementData[],
   elementLookup: Map<string, ElementData>,
 ): OpponentTeam {
-  // Difficulty scaling: opponents get stronger as you progress
-  const difficultyLevel = 1 + seasonIndex * 0.5 + competitionsWon * 0.15;
-  const minStat = Math.min(Math.floor(difficultyLevel), 8);
-  const maxStat = Math.min(Math.floor(difficultyLevel + 3), 10);
+  // Difficulty scaling: opponents are competitive from the start and grow with you
+  const difficultyLevel = 2 + seasonIndex * 0.35 + competitionsWon * 0.12;
+  const minStat = Math.max(2, Math.min(Math.floor(difficultyLevel), 8));
+  const maxStat = Math.min(Math.floor(difficultyLevel + 2), 10);
 
   // Pick team name
   const teamName = TEAM_NAMES[Math.floor(Math.random() * TEAM_NAMES.length)]!;
 
-  // Generate swimmers
+  // Generate swimmers with unique names
+  const names = generateUniqueNames(TEAM_SIZE);
   const swimmers: SwimmerData[] = [];
   for (let i = 0; i < TEAM_SIZE; i++) {
-    const first = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)]!;
-    const last = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)]!;
-    swimmers.push(createSwimmer(`${first} ${last}`, {
+    swimmers.push(createSwimmer(names[i]!, {
       artistry: randStat(minStat, maxStat),
       athleticism: randStat(minStat, maxStat),
       endurance: randStat(minStat, maxStat),
@@ -126,6 +125,33 @@ function buildOpponentRoutine(
     name: 'Opponent Routine',
     slots,
   };
+}
+
+function generateUniqueNames(count: number): string[] {
+  const firsts = shuffle(FIRST_NAMES);
+  const lasts = shuffle(LAST_NAMES);
+  const names: string[] = [];
+  const used = new Set<string>();
+
+  for (let i = 0; names.length < count; i++) {
+    const first = firsts[i % firsts.length]!;
+    const last = lasts[i % lasts.length]!;
+    const name = `${first} ${last}`;
+    if (!used.has(name)) {
+      used.add(name);
+      names.push(name);
+    }
+  }
+  return names;
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j]!, a[i]!];
+  }
+  return a;
 }
 
 function randStat(min: number, max: number): number {

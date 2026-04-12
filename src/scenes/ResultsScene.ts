@@ -37,10 +37,22 @@ export class ResultsScene extends Phaser.Scene {
 
     SaveManager.save();
 
-    // Header
-    this.add.text(GAME_WIDTH / 2, 30, 'COMPETITION RESULTS', {
+    // Event name header
+    const matches = state.seasonMatches ?? [];
+    // seasonIndex was already incremented if won, so look at previous match
+    const matchIdx = won ? state.seasonIndex - 1 : state.seasonIndex;
+    const currentMatch = matches[matchIdx];
+    const matchName = currentMatch?.name ?? 'COMPETITION';
+
+    this.add.text(GAME_WIDTH / 2, 14, matchName, {
       fontFamily: 'monospace',
-      fontSize: '28px',
+      fontSize: '16px',
+      color: '#3282b8',
+    }).setOrigin(0.5);
+
+    this.add.text(GAME_WIDTH / 2, 36, 'RESULTS', {
+      fontFamily: 'monospace',
+      fontSize: '24px',
       color: '#f0c040',
       fontStyle: 'bold',
     }).setOrigin(0.5);

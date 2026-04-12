@@ -3,37 +3,39 @@ import { GAME_WIDTH, GAME_HEIGHT, COLORS } from '../config';
 import { GameState } from '../systems/GameState';
 import { SaveManager } from '../systems/SaveManager';
 import { ElementData } from '../entities/Element';
-import { RoutineData, RoutineSlot, createRoutine } from '../entities/Routine';
+import { RoutineData, createRoutine } from '../entities/Routine';
 import { validateRoutine } from '../systems/RoutineValidator';
 import { UIButton } from '../ui/UIButton';
 import { UIPanel } from '../ui/UIPanel';
-import { ElementCard } from '../ui/ElementCard';
 import elementsData from '../data/elements.json';
 
 const MAX_ROUTINE_SLOTS = 8;
-const TIMELINE_X = 540;
+
+const CATALOG_X = 20;
+const CATALOG_Y = 90;
+const CATALOG_W = 490;
+
+const TIMELINE_X = 530;
 const TIMELINE_Y = 90;
-const TIMELINE_W = 700;
+const TIMELINE_W = 730;
 const SLOT_H = 48;
 
-const ELEMENT_LIST_X = 20;
-const ELEMENT_LIST_Y = 90;
-const ELEMENT_LIST_W = 260;
+const CARD_H = 42;
+const CARD_GAP = 4;
 
 export class RoutineEditorScene extends Phaser.Scene {
   private allElements: ElementData[] = [];
   private elementLookup = new Map<string, ElementData>();
   private routine!: RoutineData;
-  private slotGraphics: Phaser.GameObjects.Container[] = [];
   private validationText!: Phaser.GameObjects.Text;
   private difficultyBar!: Phaser.GameObjects.Graphics;
   private scoreText!: Phaser.GameObjects.Text;
-  private selectedElement: ElementData | null = null;
-  private elementCards: ElementCard[] = [];
+  private filterCategory = 'all';
   private scrollOffset = 0;
-  private elementListMask!: Phaser.Display.Masks.GeometryMask;
-  private elementListContainer!: Phaser.GameObjects.Container;
-  private filterCategory: string = 'all';
+
+  // Objects we need to destroy/rebuild dynamically
+  private catalogItems: Phaser.GameObjects.GameObject[] = [];
+  private timelineItems: Phaser.GameObjects.GameObject[] = [];
 
   constructor() {
     super('RoutineEditor');
@@ -42,7 +44,6 @@ export class RoutineEditorScene extends Phaser.Scene {
   create(): void {
     const state = GameState.getInstance().get();
 
-    // Load elements (filter by coach level / tier)
     this.allElements = (elementsData as ElementData[]).filter(
       e => e.tier <= Math.ceil(state.coachLevel / 2) + 1
     );
@@ -51,7 +52,6 @@ export class RoutineEditorScene extends Phaser.Scene {
       this.elementLookup.set(el.id, el);
     }
 
-    // Load or create routine
     if (state.routines.length > 0) {
       this.routine = state.routines[0]!;
     } else {
@@ -59,155 +59,206 @@ export class RoutineEditorScene extends Phaser.Scene {
       state.routines.push(this.routine);
     }
 
-    this.selectedElement = null;
     this.scrollOffset = 0;
+    this.catalogItems = [];
+    this.timelineItems = [];
 
     // Header
     new UIButton(this, 20, 16, '< Back', () => {
+      this.routine.slots = this.routine.slots.filter(s => s.elementId !== '');
       SaveManager.save();
       this.scene.start('Manage');
     }, 120, 36);
 
     this.add.text(GAME_WIDTH / 2, 34, 'ROUTINE EDITOR', {
-      fontFamily: 'monospace',
-      fontSize: '28px',
-      color: '#bbe1fa',
-      fontStyle: 'bold',
+      fontFamily: 'monospace', fontSize: '28px', color: '#bbe1fa', fontStyle: 'bold',
     }).setOrigin(0.5);
 
     this.add.text(GAME_WIDTH / 2, 62, this.routine.name, {
-      fontFamily: 'monospace',
-      fontSize: '16px',
-      color: '#3282b8',
+      fontFamily: 'monospace', fontSize: '16px', color: '#3282b8',
     }).setOrigin(0.5);
 
-    // Left panel: Element catalog
-    this.buildElementCatalog();
+    // Static panels
+    new UIPanel(this, CATALOG_X, CATALOG_Y, CATALOG_W, GAME_HEIGHT - 180);
+    new UIPanel(this, TIMELINE_X, TIMELINE_Y, TIMELINE_W, GAME_HEIGHT - 180);
 
-    // Right panel: Timeline
-    this.buildTimeline();
-
-    // Bottom: Difficulty meter
-    this.buildDifficultyMeter();
-
-    // Initial validation
-    this.updateValidation();
-  }
-
-  private buildElementCatalog(): void {
-    new UIPanel(this, ELEMENT_LIST_X, ELEMENT_LIST_Y, ELEMENT_LIST_W + 240, GAME_HEIGHT - 180);
-
-    this.add.text(ELEMENT_LIST_X + 12, ELEMENT_LIST_Y + 8, 'ELEMENTS', {
-      fontFamily: 'monospace',
-      fontSize: '16px',
-      color: '#f0c040',
-      fontStyle: 'bold',
+    this.add.text(CATALOG_X + 12, CATALOG_Y + 8, 'ELEMENTS  (click to add)', {
+      fontFamily: 'monospace', fontSize: '14px', color: '#f0c040', fontStyle: 'bold',
     });
 
-    // Category filter buttons
-    const categories = ['all', 'position', 'figure', 'scull', 'spin', 'formation'];
-    const filterY = ELEMENT_LIST_Y + 32;
+    this.add.text(TIMELINE_X + 12, TIMELINE_Y + 8, 'ROUTINE TIMELINE', {
+      fontFamily: 'monospace', fontSize: '14px', color: '#f0c040', fontStyle: 'bold',
+    });
+
+    // Filter buttons
+    this.buildFilterButtons();
+
+    // Dynamic content
+    this.rebuildCatalog();
+    this.rebuildTimeline();
+
+    // Difficulty meter
+    this.buildDifficultyMeter();
+    this.updateValidation();
+
+    // Scroll
+    this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _gameObjects: unknown[], _dx: number, dy: number) => {
+      const filtered = this.getFilteredElements();
+      const totalH = filtered.length * (CARD_H + CARD_GAP);
+      const listH = GAME_HEIGHT - 180 - 68;
+      const maxScroll = Math.max(0, totalH - listH);
+      this.scrollOffset = Phaser.Math.Clamp(this.scrollOffset + dy * 0.5, 0, maxScroll);
+      this.rebuildCatalog();
+    });
+  }
+
+  // ── Filters ───────────────────────────────────────────────
+
+  private buildFilterButtons(): void {
+    const categories = ['all', 'position', 'figure', 'scull', 'spin', 'formation', 'lift', 'hybrid'];
+    const filterY = CATALOG_Y + 30;
     categories.forEach((cat, i) => {
-      const bx = ELEMENT_LIST_X + 12 + i * 78;
+      const bx = CATALOG_X + 10 + i * 58;
       const label = cat === 'all' ? 'ALL' : cat.substring(0, 4).toUpperCase();
       const btn = this.add.text(bx, filterY, label, {
-        fontFamily: 'monospace',
-        fontSize: '11px',
+        fontFamily: 'monospace', fontSize: '11px',
         color: this.filterCategory === cat ? '#f0c040' : '#3282b8',
-        backgroundColor: this.filterCategory === cat ? '#16213e' : undefined,
-        padding: { x: 4, y: 2 },
+        padding: { x: 3, y: 2 },
       });
       btn.setInteractive({ useHandCursor: true });
       btn.on('pointerdown', () => {
         this.filterCategory = cat;
         this.scrollOffset = 0;
-        this.rebuildElementList();
+        this.rebuildCatalog();
       });
     });
-
-    // Scrollable element list
-    const listY = filterY + 28;
-    const listH = GAME_HEIGHT - 180 - 70;
-
-    // Create mask for scrolling
-    const maskShape = this.add.graphics();
-    maskShape.fillStyle(0xffffff);
-    maskShape.fillRect(ELEMENT_LIST_X, listY, ELEMENT_LIST_W + 230, listH);
-    maskShape.setVisible(false);
-    this.elementListMask = new Phaser.Display.Masks.GeometryMask(this, maskShape);
-
-    this.elementListContainer = this.add.container(0, 0);
-    this.elementListContainer.setMask(this.elementListMask);
-
-    this.rebuildElementList();
-
-    // Scroll with mouse wheel
-    this.input.on('wheel', (_pointer: Phaser.Input.Pointer, _gameObjects: unknown[], _dx: number, dy: number) => {
-      const maxScroll = Math.max(0, this.elementCards.length * 50 - (listH - 10));
-      this.scrollOffset = Phaser.Math.Clamp(this.scrollOffset + dy * 0.5, 0, maxScroll);
-      this.updateElementListPositions();
-    });
   }
 
-  private rebuildElementList(): void {
-    // Clear old cards
-    this.elementCards.forEach(c => c.destroy());
-    this.elementCards = [];
-    this.elementListContainer.removeAll();
-
-    const filtered = this.filterCategory === 'all'
+  private getFilteredElements(): ElementData[] {
+    return this.filterCategory === 'all'
       ? this.allElements
       : this.allElements.filter(e => e.category === this.filterCategory);
+  }
 
-    const listY = ELEMENT_LIST_Y + 60;
-    const cardW = ELEMENT_LIST_W + 210;
+  // ── Element Catalog ───────────────────────────────────────
+
+  private rebuildCatalog(): void {
+    this.catalogItems.forEach(obj => obj.destroy());
+    this.catalogItems = [];
+
+    const filtered = this.getFilteredElements();
+    const listY = CATALOG_Y + 54;
+    const listH = GAME_HEIGHT - 180 - 68;
 
     filtered.forEach((element, i) => {
-      const card = new ElementCard(
-        this,
-        ELEMENT_LIST_X + 10,
-        listY + i * 50,
-        element,
-        cardW,
-        44,
-        (el) => this.onElementSelected(el),
-      );
-      this.elementListContainer.add(card);
-      this.elementCards.push(card);
-    });
+      const cardY = listY + i * (CARD_H + CARD_GAP) - this.scrollOffset;
 
-    this.updateElementListPositions();
-  }
+      // Clip: skip cards outside visible area
+      if (cardY + CARD_H < listY || cardY > listY + listH) return;
 
-  private updateElementListPositions(): void {
-    const listY = ELEMENT_LIST_Y + 60;
-    this.elementCards.forEach((card, i) => {
-      card.y = listY + i * 50 - this.scrollOffset;
+      this.createElementCard(element, CATALOG_X + 8, cardY, CATALOG_W - 16, CARD_H);
     });
   }
 
-  private onElementSelected(element: ElementData): void {
-    this.selectedElement = element;
-    this.elementCards.forEach(c => c.setSelected(c.element.id === element.id));
+  private createElementCard(element: ElementData, x: number, y: number, w: number, h: number): void {
+    const CATEGORY_COLORS: Record<string, number> = {
+      position: 0x3282b8, figure: 0x9b59b6, scull: 0x1abc9c,
+      lift: 0xe74c3c, spin: 0xf39c12, formation: 0x2ecc71, hybrid: 0xe67e22,
+    };
+    const catColor = CATEGORY_COLORS[element.category] ?? COLORS.panelBorder;
+
+    const bg = this.add.graphics();
+    const drawNormal = () => {
+      bg.clear();
+      bg.fillStyle(COLORS.dark);
+      bg.fillRect(x, y, w, h);
+      bg.lineStyle(1, catColor, 0.5);
+      bg.strokeRect(x, y, w, h);
+      bg.fillStyle(catColor);
+      bg.fillRect(x, y, 4, h);
+    };
+    drawNormal();
+    this.catalogItems.push(bg);
+
+    const name = this.add.text(x + 12, y + 6, element.name, {
+      fontFamily: 'monospace', fontSize: '13px', color: '#ffffff',
+    });
+    this.catalogItems.push(name);
+
+    const dd = this.add.text(x + 12, y + 24, `DD ${element.difficulty.toFixed(1)}`, {
+      fontFamily: 'monospace', fontSize: '10px', color: '#f0c040',
+    });
+    this.catalogItems.push(dd);
+
+    const catLabel = this.add.text(x + w - 8, y + 6, element.category.toUpperCase(), {
+      fontFamily: 'monospace', fontSize: '9px',
+      color: '#' + catColor.toString(16).padStart(6, '0'),
+    }).setOrigin(1, 0);
+    this.catalogItems.push(catLabel);
+
+    const tierLabel = this.add.text(x + w - 8, y + 22, `Tier ${element.tier}`, {
+      fontFamily: 'monospace', fontSize: '10px', color: '#3282b8',
+    }).setOrigin(1, 0);
+    this.catalogItems.push(tierLabel);
+
+    // Clickable hit area
+    const hitArea = this.add.rectangle(x + w / 2, y + h / 2, w, h);
+    hitArea.setFillStyle(0x000000, 0);
+    hitArea.setInteractive({ useHandCursor: true });
+    hitArea.on('pointerover', () => {
+      bg.clear();
+      bg.fillStyle(COLORS.panel);
+      bg.fillRect(x, y, w, h);
+      bg.lineStyle(1, COLORS.gold, 0.8);
+      bg.strokeRect(x, y, w, h);
+      bg.fillStyle(catColor);
+      bg.fillRect(x, y, 4, h);
+    });
+    hitArea.on('pointerout', drawNormal);
+    hitArea.on('pointerdown', () => this.addElementToRoutine(element));
+    this.catalogItems.push(hitArea);
   }
 
-  private buildTimeline(): void {
-    new UIPanel(this, TIMELINE_X, TIMELINE_Y, TIMELINE_W, GAME_HEIGHT - 180);
-
-    this.add.text(TIMELINE_X + 12, TIMELINE_Y + 8, 'ROUTINE TIMELINE', {
-      fontFamily: 'monospace',
-      fontSize: '16px',
-      color: '#f0c040',
-      fontStyle: 'bold',
+  private addElementToRoutine(element: ElementData): void {
+    if (this.routine.slots.length >= MAX_ROUTINE_SLOTS) {
+      this.showToast('Routine is full! (8 elements max)');
+      return;
+    }
+    this.routine.slots.push({
+      elementId: element.id,
+      formationId: 'straight-line',
     });
+    this.rebuildTimeline();
+    this.updateValidation();
+  }
 
-    this.add.text(TIMELINE_X + 12, TIMELINE_Y + 30, 'Click a slot, then select an element to place it.', {
-      fontFamily: 'monospace',
-      fontSize: '11px',
-      color: '#3282b8',
+  private showToast(message: string): void {
+    const toast = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, message, {
+      fontFamily: 'monospace', fontSize: '18px', color: '#e74c3c',
+      backgroundColor: '#16213e', padding: { x: 16, y: 8 },
+    }).setOrigin(0.5);
+    toast.setDepth(100);
+    this.tweens.add({
+      targets: toast, alpha: 0, y: toast.y - 40,
+      duration: 1200, delay: 600,
+      onComplete: () => toast.destroy(),
     });
+  }
 
-    this.slotGraphics = [];
+  // ── Routine Timeline ──────────────────────────────────────
+
+  private rebuildTimeline(): void {
+    this.timelineItems.forEach(obj => obj.destroy());
+    this.timelineItems = [];
+
+    if (this.routine.slots.length === 0) {
+      const hint = this.add.text(TIMELINE_X + TIMELINE_W / 2, TIMELINE_Y + 240,
+        'Click elements on the left\nto build your routine!', {
+          fontFamily: 'monospace', fontSize: '16px', color: '#555555', align: 'center',
+        }).setOrigin(0.5);
+      this.timelineItems.push(hint);
+    }
+
     for (let i = 0; i < MAX_ROUTINE_SLOTS; i++) {
       this.createTimelineSlot(i);
     }
@@ -215,151 +266,83 @@ export class RoutineEditorScene extends Phaser.Scene {
 
   private createTimelineSlot(index: number): void {
     const slotX = TIMELINE_X + 12;
-    const slotY = TIMELINE_Y + 56 + index * (SLOT_H + 8);
-    const slotW = TIMELINE_W - 24;
+    const slotY = TIMELINE_Y + 32 + index * (SLOT_H + 6);
+    const bgX = slotX + 28;
+    const bgW = TIMELINE_W - 24 - 28;
 
-    const container = this.add.container(slotX, slotY);
-    this.slotGraphics.push(container);
+    const num = this.add.text(slotX + 4, slotY + SLOT_H / 2, `${index + 1}`, {
+      fontFamily: 'monospace', fontSize: '16px', color: '#3282b8',
+    }).setOrigin(0, 0.5);
+    this.timelineItems.push(num);
 
-    // Slot number
-    const numText = this.add.text(4, SLOT_H / 2, `${index + 1}`, {
-      fontFamily: 'monospace',
-      fontSize: '18px',
-      color: '#3282b8',
-    });
-    numText.setOrigin(0, 0.5);
-    container.add(numText);
-
-    // Slot background
     const bg = this.add.graphics();
     bg.fillStyle(COLORS.dark);
-    bg.fillRect(30, 0, slotW - 30, SLOT_H);
-    bg.lineStyle(1, COLORS.panelBorder, 0.4);
-    bg.strokeRect(30, 0, slotW - 30, SLOT_H);
-    container.add(bg);
+    bg.fillRect(bgX, slotY, bgW, SLOT_H);
+    bg.lineStyle(1, COLORS.panelBorder, 0.3);
+    bg.strokeRect(bgX, slotY, bgW, SLOT_H);
+    this.timelineItems.push(bg);
 
-    // Content (element name or empty prompt)
-    const existingSlot = this.routine.slots[index];
-    const element = existingSlot ? this.elementLookup.get(existingSlot.elementId) : null;
-
-    const contentText = this.add.text(44, SLOT_H / 2, element ? element.name : '[ Empty - click to assign ]', {
-      fontFamily: 'monospace',
-      fontSize: '14px',
-      color: element ? '#ffffff' : '#555555',
-    });
-    contentText.setOrigin(0, 0.5);
-    container.add(contentText);
+    const slot = this.routine.slots[index];
+    const element = slot ? this.elementLookup.get(slot.elementId) : null;
 
     if (element) {
-      const ddText = this.add.text(slotW - 100, SLOT_H / 2 - 8, `DD ${element.difficulty.toFixed(1)}`, {
-        fontFamily: 'monospace',
-        fontSize: '11px',
-        color: '#f0c040',
-      });
-      container.add(ddText);
+      const name = this.add.text(bgX + 12, slotY + SLOT_H / 2, element.name, {
+        fontFamily: 'monospace', fontSize: '14px', color: '#ffffff',
+      }).setOrigin(0, 0.5);
+      this.timelineItems.push(name);
 
-      const catText = this.add.text(slotW - 100, SLOT_H / 2 + 6, element.category, {
-        fontFamily: 'monospace',
-        fontSize: '10px',
-        color: '#3282b8',
+      const ddT = this.add.text(bgX + bgW - 90, slotY + 8, `DD ${element.difficulty.toFixed(1)}`, {
+        fontFamily: 'monospace', fontSize: '11px', color: '#f0c040',
       });
-      container.add(catText);
+      this.timelineItems.push(ddT);
 
-      // Remove button
-      const removeBtn = this.add.text(slotW - 16, SLOT_H / 2, 'X', {
-        fontFamily: 'monospace',
-        fontSize: '14px',
-        color: '#e74c3c',
+      const catT = this.add.text(bgX + bgW - 90, slotY + 24, element.category, {
+        fontFamily: 'monospace', fontSize: '10px', color: '#3282b8',
       });
-      removeBtn.setOrigin(0.5);
+      this.timelineItems.push(catT);
+
+      const removeBtn = this.add.text(bgX + bgW - 20, slotY + SLOT_H / 2, 'X', {
+        fontFamily: 'monospace', fontSize: '16px', color: '#e74c3c', fontStyle: 'bold',
+      }).setOrigin(0.5);
       removeBtn.setInteractive({ useHandCursor: true });
+      removeBtn.on('pointerover', () => removeBtn.setColor('#ffffff'));
+      removeBtn.on('pointerout', () => removeBtn.setColor('#e74c3c'));
       removeBtn.on('pointerdown', () => {
         this.routine.slots.splice(index, 1);
-        this.refreshTimeline();
+        this.rebuildTimeline();
         this.updateValidation();
       });
-      container.add(removeBtn);
-    }
-
-    // Make slot clickable to assign selected element
-    const hitZone = this.add.zone(30 + (slotW - 30) / 2, SLOT_H / 2, slotW - 60, SLOT_H);
-    hitZone.setInteractive({ useHandCursor: true });
-    hitZone.on('pointerdown', () => {
-      if (this.selectedElement) {
-        const newSlot: RoutineSlot = {
-          elementId: this.selectedElement.id,
-          formationId: 'straight-line',
-        };
-        if (index < this.routine.slots.length) {
-          this.routine.slots[index] = newSlot;
-        } else {
-          // Fill gaps if needed
-          while (this.routine.slots.length < index) {
-            this.routine.slots.push({ elementId: '', formationId: 'straight-line' });
-          }
-          this.routine.slots[index] = newSlot;
-        }
-        this.refreshTimeline();
-        this.updateValidation();
-      }
-    });
-    hitZone.on('pointerover', () => {
-      if (this.selectedElement) {
-        bg.clear();
-        bg.fillStyle(COLORS.panel);
-        bg.fillRect(30, 0, slotW - 30, SLOT_H);
-        bg.lineStyle(1, COLORS.gold, 0.6);
-        bg.strokeRect(30, 0, slotW - 30, SLOT_H);
-      }
-    });
-    hitZone.on('pointerout', () => {
-      bg.clear();
-      bg.fillStyle(COLORS.dark);
-      bg.fillRect(30, 0, slotW - 30, SLOT_H);
-      bg.lineStyle(1, COLORS.panelBorder, 0.4);
-      bg.strokeRect(30, 0, slotW - 30, SLOT_H);
-    });
-    container.add(hitZone);
-  }
-
-  private refreshTimeline(): void {
-    // Destroy and rebuild all slots
-    this.slotGraphics.forEach(c => c.destroy());
-    this.slotGraphics = [];
-    for (let i = 0; i < MAX_ROUTINE_SLOTS; i++) {
-      this.createTimelineSlot(i);
+      this.timelineItems.push(removeBtn);
+    } else {
+      const empty = this.add.text(bgX + 12, slotY + SLOT_H / 2, '-- empty --', {
+        fontFamily: 'monospace', fontSize: '13px', color: '#333333',
+      }).setOrigin(0, 0.5);
+      this.timelineItems.push(empty);
     }
   }
+
+  // ── Difficulty Meter ──────────────────────────────────────
 
   private buildDifficultyMeter(): void {
     const meterY = GAME_HEIGHT - 80;
     new UIPanel(this, 20, meterY, GAME_WIDTH - 40, 64);
 
     this.add.text(32, meterY + 8, 'DIFFICULTY', {
-      fontFamily: 'monospace',
-      fontSize: '14px',
-      color: '#f0c040',
-      fontStyle: 'bold',
+      fontFamily: 'monospace', fontSize: '14px', color: '#f0c040', fontStyle: 'bold',
     });
 
     this.difficultyBar = this.add.graphics();
     this.validationText = this.add.text(160, meterY + 8, '', {
-      fontFamily: 'monospace',
-      fontSize: '13px',
-      color: '#ffffff',
+      fontFamily: 'monospace', fontSize: '13px', color: '#ffffff',
     });
-
     this.scoreText = this.add.text(160, meterY + 32, '', {
-      fontFamily: 'monospace',
-      fontSize: '13px',
-      color: '#bbe1fa',
+      fontFamily: 'monospace', fontSize: '13px', color: '#bbe1fa',
     });
 
-    // Save button
     new UIButton(this, GAME_WIDTH - 200, meterY + 10, 'Save Routine', () => {
-      // Clean empty slots
       this.routine.slots = this.routine.slots.filter(s => s.elementId !== '');
       SaveManager.save();
+      this.showToast('Routine saved!');
     }, 160, 40);
   }
 
@@ -380,21 +363,16 @@ export class RoutineEditorScene extends Phaser.Scene {
     const result = validateRoutine(tempRoutine, activeSwimmers, this.elementLookup);
 
     const ratingColors: Record<string, string> = {
-      easy: '#2ecc71',
-      moderate: '#f0c040',
-      hard: '#e67e22',
-      risky: '#e74c3c',
+      easy: '#2ecc71', moderate: '#f0c040', hard: '#e67e22', risky: '#e74c3c',
     };
 
     this.validationText.setText(
       `Total DD: ${result.totalDifficulty}  |  Rating: ${result.difficultyRating.toUpperCase()}  |  Team Avg: ${result.avgTeamStat}`
     );
     this.validationText.setColor(ratingColors[result.difficultyRating] ?? '#ffffff');
-
     this.scoreText.setText(
       `Est. Score Range: ${result.estimatedScore.low} - ${result.estimatedScore.high}`
     );
-
     this.drawDifficultyBar(result.totalDifficulty, result.difficultyRating);
   }
 
@@ -405,17 +383,14 @@ export class RoutineEditorScene extends Phaser.Scene {
     const barH = 10;
 
     const ratingColors: Record<string, number> = {
-      easy: COLORS.green,
-      moderate: COLORS.gold,
-      hard: 0xe67e22,
-      risky: COLORS.red,
+      easy: COLORS.green, moderate: COLORS.gold, hard: 0xe67e22, risky: COLORS.red,
     };
 
     this.difficultyBar.clear();
     this.difficultyBar.fillStyle(COLORS.dark);
     this.difficultyBar.fillRect(barX, barY, barW, barH);
 
-    const fillPct = Math.min(1, totalDD / 15); // 15 DD = full bar
+    const fillPct = Math.min(1, totalDD / 15);
     this.difficultyBar.fillStyle(ratingColors[rating] ?? COLORS.accent);
     this.difficultyBar.fillRect(barX, barY, barW * fillPct, barH);
 

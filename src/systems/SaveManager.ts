@@ -23,9 +23,9 @@ export class SaveManager {
     return this.activeSlot;
   }
 
-  static newGame(teamName = 'Aqua Stars'): GameStateData {
+  static newGame(teamName = 'Aqua Stars', country = 'USA'): GameStateData {
     const state = GameState.getInstance();
-    const data = state.initNew(teamName);
+    const data = state.initNew(teamName, country);
     this.save();
     return data;
   }
