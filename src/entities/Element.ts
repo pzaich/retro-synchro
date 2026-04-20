@@ -7,7 +7,7 @@ export type ElementCategory =
   | 'formation'
   | 'hybrid';
 
-export type ElementTier = 1 | 2 | 3 | 4 | 5;
+export type ElementTier = 1 | 2 | 3 | 4;
 
 export interface ElementData {
   id: string;

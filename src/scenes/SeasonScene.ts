@@ -5,7 +5,7 @@ import { UIButton } from '../ui/UIButton';
 import { UIPanel } from '../ui/UIPanel';
 
 const TIER_COLORS = [0x3282b8, 0x2ecc71, 0xf0c040, 0xe74c3c, 0x9b59b6];
-const TYPE_LABELS: Record<string, string> = { regular: '', nationals: 'NATL', olympics: 'OLY' };
+const TYPE_LABELS: Record<string, string> = { regular: '', nationals: 'NATL', trials: 'TRIAL', olympics: 'OLY' };
 
 export class SeasonScene extends Phaser.Scene {
   constructor() {
@@ -72,12 +72,14 @@ export class SeasonScene extends Phaser.Scene {
       const isCurrent = i === currentIndex;
       const isCompleted = i < currentIndex;
       const isLocked = i > currentIndex;
-      const isSpecial = match.type === 'nationals' || match.type === 'olympics';
+      const isSpecial = match.type === 'nationals' || match.type === 'trials' || match.type === 'olympics';
 
       // Row bg
       const rowGfx = this.add.graphics();
       if (match.type === 'olympics') {
         rowGfx.fillStyle(0x9b59b6, isCurrent ? 0.25 : isCompleted ? 0.08 : 0.03);
+      } else if (match.type === 'trials') {
+        rowGfx.fillStyle(0x9b59b6, isCurrent ? 0.18 : isCompleted ? 0.06 : 0.02);
       } else if (match.type === 'nationals') {
         rowGfx.fillStyle(COLORS.gold, isCurrent ? 0.2 : isCompleted ? 0.06 : 0.02);
       } else if (isCurrent) {
@@ -115,6 +117,7 @@ export class SeasonScene extends Phaser.Scene {
       // Match name
       let nameColor = isLocked ? '#444444' : isCurrent ? '#f0c040' : '#ffffff';
       if (match.type === 'olympics' && !isLocked) nameColor = '#d4a0ff';
+      if (match.type === 'trials' && !isLocked) nameColor = '#c084f0';
       if (match.type === 'nationals' && !isLocked) nameColor = '#f0c040';
 
       const nameText = isSpecial ? `★ ${match.name}` : match.name;
@@ -125,7 +128,7 @@ export class SeasonScene extends Phaser.Scene {
 
       // Type badge for special events
       if (isSpecial && !isLocked) {
-        const badgeColor = match.type === 'olympics' ? 0x9b59b6 : COLORS.gold;
+        const badgeColor = match.type === 'olympics' ? 0x9b59b6 : match.type === 'trials' ? 0x9b59b6 : COLORS.gold;
         const badgeLabel = TYPE_LABELS[match.type] ?? '';
         const badge = this.add.graphics();
         badge.fillStyle(badgeColor, 0.6);

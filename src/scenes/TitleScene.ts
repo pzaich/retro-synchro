@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from '../config';
 import { SaveManager } from '../systems/SaveManager';
+import { setTextInteractive } from '../ui/hitArea';
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
@@ -42,7 +43,7 @@ export class TitleScene extends Phaser.Scene {
         color: '#ffffff',
       });
       text.setOrigin(0.5);
-      text.setInteractive({ useHandCursor: true });
+      setTextInteractive(text, 40, 12);
 
       text.on('pointerover', () => {
         text.setColor('#f0c040');

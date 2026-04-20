@@ -4,6 +4,8 @@ import { GameState, generateSeasonMatches } from '../systems/GameState';
 import { scoreRoutine, CompetitionResult, ElementScore } from '../systems/ScoringEngine';
 import { generateOpponent, OpponentTeam } from '../systems/OpponentGenerator';
 import { getFormationPositions } from '../animations/FormationManager';
+import { setTextInteractive } from '../ui/hitArea';
+import { getChoreography, ChoreographyFrame } from '../animations/ChoreographyManager';
 import { ElementData } from '../entities/Element';
 import elementsData from '../data/elements.json';
 
@@ -17,7 +19,7 @@ const FORMATION_SPREAD = 80;
 
 export class CompetitionScene extends Phaser.Scene {
   private swimmerSprites: Phaser.GameObjects.Container[] = [];
-  private swimmerDots: Phaser.GameObjects.Arc[] = [];
+  private swimmerImages: Phaser.GameObjects.Image[] = [];
   private elementLookup = new Map<string, ElementData>();
   private result!: CompetitionResult;
   private opponent!: OpponentTeam;
@@ -85,6 +87,7 @@ export class CompetitionScene extends Phaser.Scene {
 
     // Event name (big, top)
     const eventColor = matchType === 'olympics' ? '#d4a0ff'
+      : matchType === 'trials' ? '#c084f0'
       : matchType === 'nationals' ? '#f0c040' : '#bbe1fa';
     this.add.text(GAME_WIDTH / 2, 40, matchName, {
       fontFamily: 'monospace', fontSize: '32px', color: eventColor, fontStyle: 'bold',
@@ -101,6 +104,10 @@ export class CompetitionScene extends Phaser.Scene {
       this.add.text(GAME_WIDTH / 2, 104, `Representing ${state.country ?? 'your country'} at the OLYMPIC GAMES`, {
         fontFamily: 'monospace', fontSize: '16px', color: '#d4a0ff', fontStyle: 'bold',
       }).setOrigin(0.5);
+    } else if (matchType === 'trials') {
+      this.add.text(GAME_WIDTH / 2, 104, `Competing for a spot on the ${state.country ?? ''} Olympic Team`, {
+        fontFamily: 'monospace', fontSize: '16px', color: '#c084f0', fontStyle: 'bold',
+      }).setOrigin(0.5);
     } else if (matchType === 'nationals') {
       this.add.text(GAME_WIDTH / 2, 104, `Competing for the ${state.country ?? ''} National Title`, {
         fontFamily: 'monospace', fontSize: '16px', color: '#f0c040', fontStyle: 'bold',
@@ -108,7 +115,7 @@ export class CompetitionScene extends Phaser.Scene {
     }
 
     // VS display
-    const vsY = matchType !== 'regular' ? 160 : 140;
+    const vsY = (matchType !== 'regular') ? 160 : 140;
     this.add.text(GAME_WIDTH / 2 - 250, vsY, teamName, {
       fontFamily: 'monospace', fontSize: '28px', color: '#bbe1fa', fontStyle: 'bold',
     }).setOrigin(0.5);
@@ -137,7 +144,7 @@ export class CompetitionScene extends Phaser.Scene {
     const startBtn = this.add.text(GAME_WIDTH / 2, 350, '[ START ROUTINE ]', {
       fontFamily: 'monospace', fontSize: '24px', color: '#2ecc71', fontStyle: 'bold',
     }).setOrigin(0.5);
-    startBtn.setInteractive({ useHandCursor: true });
+    setTextInteractive(startBtn, 30, 14);
     startBtn.on('pointerover', () => startBtn.setColor('#f0c040'));
     startBtn.on('pointerout', () => startBtn.setColor('#2ecc71'));
     startBtn.on('pointerdown', () => {
@@ -163,7 +170,7 @@ export class CompetitionScene extends Phaser.Scene {
     const backBtn = this.add.text(GAME_WIDTH / 2, 420, '[ BACK TO TEAM ]', {
       fontFamily: 'monospace', fontSize: '16px', color: '#888888',
     }).setOrigin(0.5);
-    backBtn.setInteractive({ useHandCursor: true });
+    setTextInteractive(backBtn, 24, 10);
     backBtn.on('pointerover', () => backBtn.setColor('#ffffff'));
     backBtn.on('pointerout', () => backBtn.setColor('#888888'));
     backBtn.on('pointerdown', () => this.scene.start('Manage'));
@@ -243,33 +250,19 @@ export class CompetitionScene extends Phaser.Scene {
 
   private createSwimmers(): void {
     this.swimmerSprites = [];
-    this.swimmerDots = [];
-    const state = GameState.getInstance().get();
-    const activeSwimmers = state.team.swimmers.filter(s => !s.isAlternate);
+    this.swimmerImages = [];
     const startPositions = getFormationPositions('straight-line', POOL_CX, POOL_CY, FORMATION_SPREAD);
 
     for (let i = 0; i < 8; i++) {
       const pos = startPositions[i]!;
-      const swimmerData = activeSwimmers[i];
-      const capColor = swimmerData?.capColor ?? COLORS.accent;
-
       const container = this.add.container(pos.x, pos.y);
 
-      // Body oval
-      const body = this.add.ellipse(0, 2, 12, 8, capColor, 0.6);
-      container.add(body);
-
-      // Head dot (used for color feedback)
-      const dot = this.add.circle(0, -3, 6, capColor);
-      dot.setStrokeStyle(1, COLORS.white, 0.7);
-      container.add(dot);
-
-      // Cap highlight
-      const capHighlight = this.add.arc(0, -5, 5, 180, 360, false, capColor);
-      container.add(capHighlight);
+      const img = this.add.image(0, 0, 'swimmer-default');
+      img.setScale(1);
+      container.add(img);
+      this.swimmerImages.push(img);
 
       this.swimmerSprites.push(container);
-      this.swimmerDots.push(dot);
     }
   }
 
@@ -325,21 +318,24 @@ export class CompetitionScene extends Phaser.Scene {
     }
 
     const elemScore = this.result.elementScores[this.currentElementIndex]!;
-    const routine = GameState.getInstance().get().routines[0]!;
-    const slot = routine.slots[this.currentElementIndex]!;
+
+    // Look up the element to get category for choreography
+    const element = this.elementLookup.get(elemScore.elementId);
+    const category = element?.category ?? 'position';
 
     // Update UI
     this.elementLabel.setText(elemScore.elementName);
     this.progressText.setText(`Element ${this.currentElementIndex + 1} / ${this.result.elementScores.length}`);
 
-    // Move swimmers to formation
-    const formationId = slot.formationId || 'straight-line';
-    const positions = getFormationPositions(formationId, POOL_CX, POOL_CY, FORMATION_SPREAD);
+    // Get choreography positions + poses for this element's category
+    const choreo = getChoreography(
+      category, POOL_CX, POOL_CY, FORMATION_SPREAD, this.currentElementIndex, elemScore.elementId,
+    );
 
-    // Animate swimmers to positions
+    // Animate swimmers to choreography positions
     const moveDuration = 800;
     this.swimmerSprites.forEach((sprite, i) => {
-      const target = positions[i]!;
+      const target = choreo.positions[i]!;
 
       // Add slight desync for partial/fail
       let offsetX = 0;
@@ -363,18 +359,14 @@ export class CompetitionScene extends Phaser.Scene {
 
     // Element action animation (pulse/spin effect)
     this.time.delayedCall(moveDuration, () => {
-      this.playElementAction(elemScore);
+      this.playElementAction(elemScore, choreo);
     });
   }
 
-  private playElementAction(elemScore: ElementScore): void {
+  private playElementAction(elemScore: ElementScore, choreo: ChoreographyFrame): void {
     const actionDuration = 900;
     const element = this.elementLookup.get(elemScore.elementId);
     const category = element?.category ?? 'position';
-
-    const color = elemScore.success === 'clean' ? 0x2ecc71
-      : elemScore.success === 'partial' ? 0xf0c040
-      : 0xe74c3c;
 
     // Show element name label floating above the pool
     const actionLabel = this.add.text(POOL_CX, POOL_Y + 16, elemScore.elementName.toUpperCase(), {
@@ -386,10 +378,12 @@ export class CompetitionScene extends Phaser.Scene {
       this.tweens.add({ targets: actionLabel, alpha: 0, duration: 200, onComplete: () => actionLabel.destroy() });
     });
 
-    this.swimmerSprites.forEach((sprite, idx) => {
-      const dot = this.swimmerDots[idx];
-      if (dot) dot.setFillStyle(color);
+    // Swap swimmer textures based on per-swimmer choreography poses
+    this.swimmerImages.forEach((img, i) => {
+      img.setTexture(choreo.poses[i] ?? 'swimmer-default');
+    });
 
+    this.swimmerSprites.forEach((sprite, idx) => {
       this.createSplash(sprite.x, sprite.y, elemScore.success === 'clean' ? 6 : 3);
 
       // Fail: wobble for all categories
@@ -423,13 +417,9 @@ export class CompetitionScene extends Phaser.Scene {
       }
     });
 
-    // Restore colors after action
+    // Restore default pose after action
     this.time.delayedCall(actionDuration, () => {
-      const state = GameState.getInstance().get();
-      const active = state.team.swimmers.filter(s => !s.isAlternate);
-      this.swimmerDots.forEach((dot, idx) => {
-        if (dot) dot.setFillStyle(active[idx]?.capColor ?? COLORS.accent);
-      });
+      this.swimmerImages.forEach(img => img.setTexture('swimmer-default'));
     });
 
     // Show score flash

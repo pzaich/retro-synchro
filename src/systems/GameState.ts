@@ -4,7 +4,7 @@ import { RoutineData } from '../entities/Routine';
 export interface SeasonMatch {
   name: string;
   tier: number;
-  type: 'regular' | 'nationals' | 'olympics';
+  type: 'regular' | 'nationals' | 'trials' | 'olympics';
 }
 
 export interface GameStateData {
@@ -129,8 +129,9 @@ export function generateSeasonMatches(seasonNumber: number): SeasonMatch[] {
   // Tier 4: 2 elite meets
   for (let i = 0; i < 2; i++) addUnique(REGULAR_MEETS_T4, 4);
 
-  // Olympics every 4th season (starting season 4)
+  // Olympics every 4th season (starting season 4), with Trials beforehand
   if (seasonNumber >= 4 && seasonNumber % 4 === 0) {
+    matches.push({ name: 'OLYMPIC TRIALS', tier: 4, type: 'trials' });
     matches.push({ name: 'OLYMPIC GAMES', tier: 5, type: 'olympics' });
   }
 

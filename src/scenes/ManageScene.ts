@@ -6,6 +6,7 @@ import { SwimmerData } from '../entities/Swimmer';
 import { UIButton } from '../ui/UIButton';
 import { UIPanel } from '../ui/UIPanel';
 import { createSwimmerPortrait } from '../ui/SwimmerSprite';
+import { setTextInteractive } from '../ui/hitArea';
 
 export class ManageScene extends Phaser.Scene {
   private swapSource: SwimmerData | null = null;
@@ -98,7 +99,7 @@ export class ManageScene extends Phaser.Scene {
     const btnY = GAME_HEIGHT - 60;
     const btnW = 160;
     const btnGap = 10;
-    const totalBtnW = btnW * 4 + btnGap * 3;
+    const totalBtnW = btnW * 3 + btnGap * 2;
     const btnStartX = (GAME_WIDTH - totalBtnW) / 2;
 
     new UIButton(this, btnStartX, btnY, 'Routine', () => {
@@ -109,11 +110,7 @@ export class ManageScene extends Phaser.Scene {
       this.scene.start('Trade');
     }, btnW, 44);
 
-    new UIButton(this, btnStartX + (btnW + btnGap) * 2, btnY, 'Season', () => {
-      this.scene.start('Season');
-    }, btnW, 44);
-
-    new UIButton(this, btnStartX + (btnW + btnGap) * 3, btnY, 'Compete', () => {
+    new UIButton(this, btnStartX + (btnW + btnGap) * 2, btnY, 'Compete', () => {
       this.scene.start('Season');
     }, btnW, 44);
   }
@@ -136,7 +133,7 @@ export class ManageScene extends Phaser.Scene {
       fontSize: '14px',
       color: nameColor,
     });
-    nameText.setInteractive({ useHandCursor: true });
+    setTextInteractive(nameText, 8, 6);
     nameText.on('pointerover', () => nameText.setColor('#f0c040'));
     nameText.on('pointerout', () => nameText.setColor(nameColor));
     nameText.on('pointerdown', () => {
@@ -172,7 +169,7 @@ export class ManageScene extends Phaser.Scene {
       fontSize: '12px',
       color: '#3282b8',
     });
-    swapBtn.setInteractive({ useHandCursor: true });
+    setTextInteractive(swapBtn, 10, 8);
     swapBtn.on('pointerover', () => swapBtn.setColor('#f0c040'));
     swapBtn.on('pointerout', () => swapBtn.setColor('#3282b8'));
     swapBtn.on('pointerdown', () => {

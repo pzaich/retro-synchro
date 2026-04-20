@@ -60,21 +60,21 @@ export function scoreRoutine(
     const fatiguePct = i / Math.max(routine.slots.length - 1, 1);
     const fatigueMultiplier = 1 - fatiguePct * (1 - avgEndurance / 12); // up to ~17% penalty at end
 
-    // Execution check: fair but forgiving
-    const abilityRatio = (avgAthleticism * 1.6) / Math.max(element.difficulty, 0.1);
-    const baseExecution = Math.min(10, abilityRatio * 3.0 + 2.5) * fatigueMultiplier;
-    const executionRoll = baseExecution + (Math.random() - 0.5) * 1.6;
+    // Execution check: difficulty matters
+    const abilityRatio = (avgAthleticism * 1.4) / Math.max(element.difficulty, 0.1);
+    const baseExecution = Math.min(10, abilityRatio * 2.5 + 1.8) * fatigueMultiplier;
+    const executionRoll = baseExecution + (Math.random() - 0.5) * 2.2;
     const execution = clamp(executionRoll, 0, 10);
 
-    // Artistry: decent baseline with variety reward
-    const varietyBonus = usedCategories.has(element.category) ? 0 : 1.0;
+    // Artistry: variety matters more, lower baseline
+    const varietyBonus = usedCategories.has(element.category) ? 0 : 0.8;
     usedCategories.add(element.category);
-    const artistryBase = avgArtistry * 0.9 + varietyBonus + 1.5;
-    const artistry = clamp(artistryBase + (Math.random() - 0.5) * 1.2, 0, 10);
+    const artistryBase = avgArtistry * 0.8 + varietyBonus + 0.8;
+    const artistry = clamp(artistryBase + (Math.random() - 0.5) * 1.6, 0, 10);
 
-    // Synchronization: solid floor
-    const syncBase = (avgEndurance * 0.8 + avgArtistry * 0.3 + 1.5) * fatigueMultiplier;
-    const synchronization = clamp(syncBase + (Math.random() - 0.5) * 1.2, 0, 10);
+    // Synchronization: fatigue hits harder
+    const syncBase = (avgEndurance * 0.7 + avgArtistry * 0.25 + 1.0) * fatigueMultiplier;
+    const synchronization = clamp(syncBase + (Math.random() - 0.5) * 1.6, 0, 10);
 
     // Success classification
     let success: ElementScore['success'];

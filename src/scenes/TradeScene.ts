@@ -5,6 +5,7 @@ import { SaveManager } from '../systems/SaveManager';
 import { SwimmerData, createSwimmer } from '../entities/Swimmer';
 import { UIButton } from '../ui/UIButton';
 import { createSwimmerPortrait } from '../ui/SwimmerSprite';
+import { setTextInteractive } from '../ui/hitArea';
 
 const TRADE_NAMES_FIRST = [
   'Bianca', 'Yuna', 'Astrid', 'Priya', 'Naomi', 'Katya', 'Lila', 'Ximena',
@@ -107,7 +108,7 @@ export class TradeScene extends Phaser.Scene {
       const declineBtn = this.add.text(GAME_WIDTH - 220, oy + offerH - 8, 'Decline', {
         fontFamily: 'monospace', fontSize: '11px', color: '#888888',
       });
-      declineBtn.setInteractive({ useHandCursor: true });
+      setTextInteractive(declineBtn, 16, 8);
       declineBtn.on('pointerover', () => declineBtn.setColor('#e74c3c'));
       declineBtn.on('pointerout', () => declineBtn.setColor('#888888'));
       declineBtn.on('pointerdown', () => {

@@ -39,8 +39,8 @@ export function generateOpponent(
   elementLookup: Map<string, ElementData>,
 ): OpponentTeam {
   // Difficulty scaling: opponents are competitive from the start and grow with you
-  const difficultyLevel = 2 + seasonIndex * 0.35 + competitionsWon * 0.12;
-  const minStat = Math.max(2, Math.min(Math.floor(difficultyLevel), 8));
+  const difficultyLevel = 3 + seasonIndex * 0.4 + competitionsWon * 0.15;
+  const minStat = Math.max(3, Math.min(Math.floor(difficultyLevel), 9));
   const maxStat = Math.min(Math.floor(difficultyLevel + 2), 10);
 
   // Pick team name
@@ -83,7 +83,7 @@ function buildOpponentRoutine(
   difficultyLevel: number,
 ): RoutineData {
   // Filter elements by what's available at this difficulty
-  const maxTier = Math.min(5, Math.ceil(difficultyLevel / 2));
+  const maxTier = Math.min(4, Math.ceil(difficultyLevel / 2));
   const eligible = elements.filter(e => e.tier <= maxTier && e.category !== 'formation');
 
   if (eligible.length === 0) {

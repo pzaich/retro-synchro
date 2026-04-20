@@ -5,8 +5,10 @@ import { SaveManager } from '../systems/SaveManager';
 import { ElementData } from '../entities/Element';
 import { RoutineData, createRoutine } from '../entities/Routine';
 import { validateRoutine } from '../systems/RoutineValidator';
+import { coachLevelToTier, tierUnlockLevel } from '../systems/ProgressionSystem';
 import { UIButton } from '../ui/UIButton';
 import { UIPanel } from '../ui/UIPanel';
+import { setTextInteractive } from '../ui/hitArea';
 import elementsData from '../data/elements.json';
 
 const MAX_ROUTINE_SLOTS = 8;
@@ -32,6 +34,7 @@ export class RoutineEditorScene extends Phaser.Scene {
   private scoreText!: Phaser.GameObjects.Text;
   private filterCategory = 'all';
   private scrollOffset = 0;
+  private maxTier = 1;
 
   // Objects we need to destroy/rebuild dynamically
   private catalogItems: Phaser.GameObjects.GameObject[] = [];
@@ -44,9 +47,8 @@ export class RoutineEditorScene extends Phaser.Scene {
   create(): void {
     const state = GameState.getInstance().get();
 
-    this.allElements = (elementsData as ElementData[]).filter(
-      e => e.tier <= Math.ceil(state.coachLevel / 2) + 1
-    );
+    this.allElements = (elementsData as ElementData[]).slice().sort((a, b) => a.tier - b.tier);
+    this.maxTier = coachLevelToTier(state.coachLevel);
     this.elementLookup.clear();
     for (const el of elementsData as ElementData[]) {
       this.elementLookup.set(el.id, el);
@@ -85,6 +87,10 @@ export class RoutineEditorScene extends Phaser.Scene {
     this.add.text(CATALOG_X + 12, CATALOG_Y + 8, 'ELEMENTS  (click to add)', {
       fontFamily: 'monospace', fontSize: '14px', color: '#f0c040', fontStyle: 'bold',
     });
+
+    this.add.text(CATALOG_X + CATALOG_W - 12, CATALOG_Y + 8, `Tier ${this.maxTier}/4 unlocked`, {
+      fontFamily: 'monospace', fontSize: '11px', color: '#3282b8',
+    }).setOrigin(1, 0);
 
     this.add.text(TIMELINE_X + 12, TIMELINE_Y + 8, 'ROUTINE TIMELINE', {
       fontFamily: 'monospace', fontSize: '14px', color: '#f0c040', fontStyle: 'bold',
@@ -125,7 +131,7 @@ export class RoutineEditorScene extends Phaser.Scene {
         color: this.filterCategory === cat ? '#f0c040' : '#3282b8',
         padding: { x: 3, y: 2 },
       });
-      btn.setInteractive({ useHandCursor: true });
+      setTextInteractive(btn, 8, 6);
       btn.on('pointerdown', () => {
         this.filterCategory = cat;
         this.scrollOffset = 0;
@@ -166,57 +172,89 @@ export class RoutineEditorScene extends Phaser.Scene {
       lift: 0xe74c3c, spin: 0xf39c12, formation: 0x2ecc71, hybrid: 0xe67e22,
     };
     const catColor = CATEGORY_COLORS[element.category] ?? COLORS.panelBorder;
+    const locked = element.tier > this.maxTier;
 
     const bg = this.add.graphics();
     const drawNormal = () => {
       bg.clear();
-      bg.fillStyle(COLORS.dark);
+      bg.fillStyle(COLORS.dark, locked ? 0.55 : 1);
       bg.fillRect(x, y, w, h);
-      bg.lineStyle(1, catColor, 0.5);
+      bg.lineStyle(1, locked ? 0x333333 : catColor, locked ? 0.6 : 0.5);
       bg.strokeRect(x, y, w, h);
-      bg.fillStyle(catColor);
+      bg.fillStyle(locked ? 0x444444 : catColor);
       bg.fillRect(x, y, 4, h);
     };
     drawNormal();
     this.catalogItems.push(bg);
 
+    const textColor = locked ? '#555555' : '#ffffff';
+    const ddColor = locked ? '#555555' : '#f0c040';
+    const catColorHex = locked ? '#555555' : '#' + catColor.toString(16).padStart(6, '0');
+    const tierColor = locked ? '#666666' : '#3282b8';
+
     const name = this.add.text(x + 12, y + 6, element.name, {
-      fontFamily: 'monospace', fontSize: '13px', color: '#ffffff',
+      fontFamily: 'monospace', fontSize: '13px', color: textColor,
     });
     this.catalogItems.push(name);
 
     const dd = this.add.text(x + 12, y + 24, `DD ${element.difficulty.toFixed(1)}`, {
-      fontFamily: 'monospace', fontSize: '10px', color: '#f0c040',
+      fontFamily: 'monospace', fontSize: '10px', color: ddColor,
     });
     this.catalogItems.push(dd);
 
     const catLabel = this.add.text(x + w - 8, y + 6, element.category.toUpperCase(), {
-      fontFamily: 'monospace', fontSize: '9px',
-      color: '#' + catColor.toString(16).padStart(6, '0'),
+      fontFamily: 'monospace', fontSize: '9px', color: catColorHex,
     }).setOrigin(1, 0);
     this.catalogItems.push(catLabel);
 
     const tierLabel = this.add.text(x + w - 8, y + 22, `Tier ${element.tier}`, {
-      fontFamily: 'monospace', fontSize: '10px', color: '#3282b8',
+      fontFamily: 'monospace', fontSize: '10px', color: tierColor,
     }).setOrigin(1, 0);
     this.catalogItems.push(tierLabel);
 
-    // Clickable hit area
+    if (locked) {
+      this.drawLockIcon(x + w - 28, y + h / 2);
+    }
+
     const hitArea = this.add.rectangle(x + w / 2, y + h / 2, w, h);
     hitArea.setFillStyle(0x000000, 0);
-    hitArea.setInteractive({ useHandCursor: true });
-    hitArea.on('pointerover', () => {
-      bg.clear();
-      bg.fillStyle(COLORS.panel);
-      bg.fillRect(x, y, w, h);
-      bg.lineStyle(1, COLORS.gold, 0.8);
-      bg.strokeRect(x, y, w, h);
-      bg.fillStyle(catColor);
-      bg.fillRect(x, y, 4, h);
-    });
-    hitArea.on('pointerout', drawNormal);
-    hitArea.on('pointerdown', () => this.addElementToRoutine(element));
+    hitArea.setInteractive({ useHandCursor: !locked });
+
+    if (locked) {
+      hitArea.on('pointerdown', () => {
+        this.showToast(`Tier ${element.tier} unlocks at Coach Level ${tierUnlockLevel(element.tier)}`);
+      });
+    } else {
+      hitArea.on('pointerover', () => {
+        bg.clear();
+        bg.fillStyle(COLORS.panel);
+        bg.fillRect(x, y, w, h);
+        bg.lineStyle(1, COLORS.gold, 0.8);
+        bg.strokeRect(x, y, w, h);
+        bg.fillStyle(catColor);
+        bg.fillRect(x, y, 4, h);
+      });
+      hitArea.on('pointerout', drawNormal);
+      hitArea.on('pointerdown', () => this.addElementToRoutine(element));
+    }
     this.catalogItems.push(hitArea);
+  }
+
+  private drawLockIcon(cx: number, cy: number): void {
+    const g = this.add.graphics();
+    const bodyW = 10;
+    const bodyH = 8;
+    const bodyX = cx - bodyW / 2;
+    const bodyY = cy - 1;
+    g.fillStyle(0x888888);
+    g.fillRect(bodyX, bodyY, bodyW, bodyH);
+    g.lineStyle(2, 0x888888);
+    g.beginPath();
+    g.arc(cx, bodyY, bodyW / 2 - 1, Phaser.Math.DegToRad(180), Phaser.Math.DegToRad(360));
+    g.strokePath();
+    g.fillStyle(0x16213e);
+    g.fillCircle(cx, bodyY + bodyH / 2 + 1, 1);
+    this.catalogItems.push(g);
   }
 
   private addElementToRoutine(element: ElementData): void {
@@ -304,7 +342,7 @@ export class RoutineEditorScene extends Phaser.Scene {
       const removeBtn = this.add.text(bgX + bgW - 20, slotY + SLOT_H / 2, 'X', {
         fontFamily: 'monospace', fontSize: '16px', color: '#e74c3c', fontStyle: 'bold',
       }).setOrigin(0.5);
-      removeBtn.setInteractive({ useHandCursor: true });
+      setTextInteractive(removeBtn, 10, 8);
       removeBtn.on('pointerover', () => removeBtn.setColor('#ffffff'));
       removeBtn.on('pointerout', () => removeBtn.setColor('#e74c3c'));
       removeBtn.on('pointerdown', () => {

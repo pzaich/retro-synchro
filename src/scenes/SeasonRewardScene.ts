@@ -89,7 +89,7 @@ export class SeasonRewardScene extends Phaser.Scene {
     });
     rewardY += 22;
 
-    const tierUnlocked = Math.ceil(state.coachLevel / 2);
+    const tierUnlocked = Math.min(4, Math.ceil(state.coachLevel / 2));
     this.add.text(120, rewardY, `Element Tier ${tierUnlocked} now available!`, {
       fontFamily: 'monospace', fontSize: '12px', color: '#3282b8',
     });

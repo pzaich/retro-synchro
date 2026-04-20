@@ -199,7 +199,6 @@
     "difficulty": 0.6,
     "description": "Four or more swimmers forming a diamond shape"
   },
-
   {
     "id": "knight",
     "name": "Knight",
@@ -304,7 +303,6 @@
     "difficulty": 0.8,
     "description": "Swimmers radiating from center point in multi-armed pattern"
   },
-
   {
     "id": "cyclone-open-180",
     "name": "Cyclone Open 180",
@@ -361,12 +359,11 @@
     "difficulty": 2.2,
     "description": "Rapid descending spin of at least 720 degrees"
   },
-
   {
     "id": "whip-continuous-720",
     "name": "Whip Continuous Spin 720",
     "category": "figure",
-    "tier": 5,
+    "tier": 4,
     "difficulty": 2.8,
     "description": "Figure culminating in a rapid descending 720-degree continuous spin"
   },
@@ -374,7 +371,7 @@
     "id": "barracuda-airborne-split",
     "name": "Barracuda Airborne Split",
     "category": "figure",
-    "tier": 5,
+    "tier": 4,
     "difficulty": 2.9,
     "description": "Barracuda with rocket split, rejoining vertical with 180 spin"
   },
@@ -382,7 +379,7 @@
     "id": "flamingo-combined-spin",
     "name": "Flamingo Combined 720",
     "category": "figure",
-    "tier": 5,
+    "tier": 4,
     "difficulty": 3.0,
     "description": "Flamingo with combined ascending and descending 720-degree spin"
   },
@@ -390,7 +387,7 @@
     "id": "combined-airborne-balance",
     "name": "Combined Airborne-Balance",
     "category": "lift",
-    "tier": 5,
+    "tier": 4,
     "difficulty": 3.0,
     "description": "Combines airborne throw with balance stack in sequence"
   },
@@ -398,7 +395,7 @@
     "id": "rocket-split",
     "name": "Rocket Split",
     "category": "lift",
-    "tier": 5,
+    "tier": 4,
     "difficulty": 2.8,
     "description": "Swimmer executes an airborne split during a throw or thrust"
   },
@@ -406,11 +403,10 @@
     "id": "continuous-spin-1080",
     "name": "Continuous Spin 1080",
     "category": "spin",
-    "tier": 5,
+    "tier": 4,
     "difficulty": 2.6,
     "description": "Three full rapid descending rotations"
   },
-
   {
     "id": "vertical",
     "name": "Vertical",
@@ -647,7 +643,7 @@
     "id": "combined-airborne-platform",
     "name": "Combined Airborne-Platform",
     "category": "lift",
-    "tier": 5,
+    "tier": 4,
     "difficulty": 2.9,
     "description": "Combines airborne throw with platform lift characteristics"
   },
@@ -679,7 +675,7 @@
     "id": "custom-hybrid-5",
     "name": "Custom Hybrid (5-skill)",
     "category": "hybrid",
-    "tier": 5,
+    "tier": 4,
     "difficulty": 2.7,
     "description": "Coach-designed sequence of 5+ skills with declared difficulty"
   },
@@ -687,11 +683,10 @@
     "id": "custom-hybrid-7",
     "name": "Custom Hybrid (7-skill)",
     "category": "hybrid",
-    "tier": 5,
+    "tier": 4,
     "difficulty": 3.2,
     "description": "Advanced coach-designed sequence of 7 chained skills"
   },
-
   {
     "id": "sailboat",
     "name": "Sailboat",
@@ -912,7 +907,7 @@
     "id": "triple-spin-1080",
     "name": "Triple Spin 1080",
     "category": "spin",
-    "tier": 5,
+    "tier": 4,
     "difficulty": 2.8,
     "description": "Three full rotations executed with perfect control"
   },
@@ -920,7 +915,7 @@
     "id": "tower-launch",
     "name": "Tower Launch",
     "category": "lift",
-    "tier": 5,
+    "tier": 4,
     "difficulty": 3.1,
     "description": "Full team tower followed by top swimmer launch and aerial"
   },
@@ -928,7 +923,7 @@
     "id": "kaleidoscope",
     "name": "Kaleidoscope",
     "category": "formation",
-    "tier": 5,
+    "tier": 4,
     "difficulty": 1.5,
     "description": "Constantly shifting symmetrical pattern like a kaleidoscope"
   },
@@ -936,7 +931,7 @@
     "id": "grand-finale-hybrid",
     "name": "Grand Finale Hybrid",
     "category": "hybrid",
-    "tier": 5,
+    "tier": 4,
     "difficulty": 3.5,
     "description": "Ultimate 8+ skill chain designed as a show-stopping closer"
   }

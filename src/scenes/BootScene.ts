@@ -24,6 +24,13 @@ export class BootScene extends Phaser.Scene {
       fill.fillRect(barX, barY, barW * value, barH);
     });
 
+    // Load swimmer pose sprites
+    this.load.image('swimmer-default', 'assets/sprites/swimmer-default.png');
+    this.load.image('swimmer-lift', 'assets/sprites/swimmer-lift.png');
+    this.load.image('swimmer-figure', 'assets/sprites/swimmer-figure.png');
+    this.load.image('swimmer-vertical', 'assets/sprites/swimmer-vertical.png');
+    this.load.image('swimmer-tuck', 'assets/sprites/swimmer-tuck.png');
+
     // Generate placeholder textures instead of loading files
     this.generatePlaceholders();
   }

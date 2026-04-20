@@ -23,11 +23,18 @@ export interface ProgressionResult {
 
 /** Maps coach level to max element tier accessible */
 export function coachLevelToTier(coachLevel: number): number {
-  if (coachLevel <= 1) return 1;
-  if (coachLevel <= 3) return 2;
-  if (coachLevel <= 5) return 3;
-  if (coachLevel <= 7) return 4;
-  return 5;
+  if (coachLevel <= 2) return 1;
+  if (coachLevel <= 4) return 2;
+  if (coachLevel <= 6) return 3;
+  return 4;
+}
+
+/** Coach level at which a given element tier unlocks */
+export function tierUnlockLevel(tier: number): number {
+  if (tier <= 1) return 1;
+  if (tier === 2) return 3;
+  if (tier === 3) return 5;
+  return 7;
 }
 
 /** XP required for next coach level */
