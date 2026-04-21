@@ -1,6 +1,7 @@
 import { Position } from './FormationManager';
+import { SwimmerPose } from '../ui/SwimmerPoseRenderer';
 
-export type SwimmerPose = 'swimmer-default' | 'swimmer-lift' | 'swimmer-figure' | 'swimmer-vertical' | 'swimmer-tuck';
+export type { SwimmerPose };
 
 export interface ChoreographyFrame {
   /** Target positions for each of the 8 swimmers */
@@ -9,16 +10,33 @@ export interface ChoreographyFrame {
   poses: SwimmerPose[];
 }
 
-/** Element IDs that should use the vertical sprite */
-const VERTICAL_ELEMENTS = new Set([
-  'vertical', 'pencil', 'tower', 'porpoise', 'swordfish-straight',
-  'barracuda', 'ballet-leg', 'double-ballet-leg', 'flamingo',
-]);
+const VERTICAL_ELEMENTS = new Set(['vertical', 'pencil', 'tower', 'porpoise', 'swordfish-straight']);
+const TUCK_ELEMENTS = new Set(['tub', 'inverted-tuck', 'oyster']);
+const PIKE_ELEMENTS = new Set(['back-pike', 'front-pike', 'barracuda', 'submerged-back-pike']);
+const SPLIT_ELEMENTS = new Set(['split-position', 'rocket-split', 'scissors-kick', 'barracuda-airborne-split']);
+const BALLET_LEG_ELEMENTS = new Set(['ballet-leg', 'double-ballet-leg', 'crane']);
+const ARCH_ELEMENTS = new Set(['front-walkover', 'surface-arch', 'walkout-back', 'mermaid-tail']);
+const SUBMERGED_ELEMENTS = new Set(['spiral-descent', 'vertical-descent']);
+const THROW_ELEMENTS = new Set(['airborne-throw', 'airborne-jump', 'catapult-throw', 'tower-launch']);
+const STARFISH_ELEMENTS = new Set(['starfish-float', 'blossom']);
+const FLAMINGO_ELEMENTS = new Set(['flamingo', 'flamingo-combined-spin']);
+const SOMERSAULT_ELEMENTS = new Set(['back-tuck-somersault', 'catalina-rotation', 'walkover-transition']);
 
-/** Element IDs that should use the tuck sprite */
-const TUCK_ELEMENTS = new Set([
-  'tub', 'inverted-tuck', 'back-tuck-somersault', 'oyster',
-]);
+const ELEMENT_POSE_OVERRIDES: Array<[Set<string>, SwimmerPose]> = [
+  [PIKE_ELEMENTS, 'swimmer-pike'],
+  [SPLIT_ELEMENTS, 'swimmer-split'],
+  [BALLET_LEG_ELEMENTS, 'swimmer-ballet-leg'],
+  [ARCH_ELEMENTS, 'swimmer-arch'],
+  [SUBMERGED_ELEMENTS, 'swimmer-submerged'],
+  [THROW_ELEMENTS, 'swimmer-throw'],
+  [STARFISH_ELEMENTS, 'swimmer-starfish'],
+  [FLAMINGO_ELEMENTS, 'swimmer-flamingo'],
+  [SOMERSAULT_ELEMENTS, 'swimmer-somersault'],
+  [VERTICAL_ELEMENTS, 'swimmer-vertical'],
+  [TUCK_ELEMENTS, 'swimmer-tuck'],
+];
+
+const BASE_POSES: ReadonlySet<SwimmerPose> = new Set(['swimmer-default', 'swimmer-figure']);
 
 /**
  * Returns choreography (positions + poses) for 8 swimmers
@@ -55,27 +73,22 @@ export function getChoreography(
       break;
     case 'hybrid':
       frame = hybridChoreography(cx, cy, spread, patternIndex);
-      frame = {
-        positions: frame.positions,
-        poses: frame.poses.map(() => 'swimmer-vertical'),
-      };
       break;
     default: // position
       frame = positionChoreography(cx, cy, spread, patternIndex);
       break;
   }
 
-  // Override poses for elements that use specific sprites
-  if (elementId && VERTICAL_ELEMENTS.has(elementId)) {
-    frame = {
-      positions: frame.positions,
-      poses: frame.poses.map(p => p === 'swimmer-default' || p === 'swimmer-figure' ? 'swimmer-vertical' : p),
-    };
-  } else if (elementId && TUCK_ELEMENTS.has(elementId)) {
-    frame = {
-      positions: frame.positions,
-      poses: frame.poses.map(p => p === 'swimmer-default' || p === 'swimmer-figure' ? 'swimmer-tuck' : p),
-    };
+  if (elementId) {
+    for (const [set, pose] of ELEMENT_POSE_OVERRIDES) {
+      if (set.has(elementId)) {
+        frame = {
+          positions: frame.positions,
+          poses: frame.poses.map(p => BASE_POSES.has(p) ? pose : p),
+        };
+        break;
+      }
+    }
   }
 
   return frame;
@@ -231,7 +244,7 @@ function figureChoreography(cx: number, cy: number, s: number, idx: number): Cho
 // Spins: swimmers rotate in place. Formations emphasize circular/radial patterns.
 
 function spinChoreography(cx: number, cy: number, s: number, idx: number): ChoreographyFrame {
-  const allDefault: SwimmerPose[] = Array(8).fill('swimmer-default');
+  const allDefault: SwimmerPose[] = Array(8).fill('swimmer-spin');
 
   const patterns: (() => ChoreographyFrame)[] = [
     // Pattern 0: Pinwheel — circle formation, natural for spinning
@@ -290,7 +303,7 @@ function spinChoreography(cx: number, cy: number, s: number, idx: number): Chore
 // Sculling is about propulsion and travel. Parallel lanes and diagonal travel.
 
 function scullChoreography(cx: number, cy: number, s: number, idx: number): ChoreographyFrame {
-  const allDefault: SwimmerPose[] = Array(8).fill('swimmer-default');
+  const allDefault: SwimmerPose[] = Array(8).fill('swimmer-scull');
 
   const patterns: (() => ChoreographyFrame)[] = [
     // Pattern 0: Two parallel lines of 4 — classic synchro travel
