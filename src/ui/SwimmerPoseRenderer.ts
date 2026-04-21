@@ -80,7 +80,6 @@ function drawHeadWithCap(g: Phaser.GameObjects.Graphics, cx: number, cy: number,
 }
 
 function drawDefault(g: Phaser.GameObjects.Graphics, c: PoseColors): void {
-  // Top-down floating pose
   g.fillStyle(c.skin);
   g.fillEllipse(0, 4, 14, 10);
   g.fillRect(-11, 2, 4, 3);
@@ -88,20 +87,20 @@ function drawDefault(g: Phaser.GameObjects.Graphics, c: PoseColors): void {
   g.fillStyle(c.cap);
   g.fillEllipse(0, 4, 10, 7);
   g.fillStyle(c.skin);
-  g.fillRect(-3, 10, 6, 6);
+  g.fillRect(-3, 10, 2, 6);
+  g.fillRect(1, 10, 2, 6);
   drawHeadWithCap(g, 0, -4, 6, c);
 }
 
 function drawLift(g: Phaser.GameObjects.Graphics, c: PoseColors): void {
-  g.lineStyle(1, 0xbbe1fa, 0.35);
-  g.strokeCircle(0, 10, 18);
   g.fillStyle(c.skin);
   g.fillRect(-18, -3, 36, 4);
   g.fillRect(-2, 0, 4, 14);
   g.fillStyle(c.cap);
   g.fillRect(-5, 1, 10, 10);
   g.fillStyle(c.skin);
-  g.fillRect(-3, 14, 6, 6);
+  g.fillRect(-3, 14, 2, 6);
+  g.fillRect(1, 14, 2, 6);
   drawHeadWithCap(g, 0, -6, 5, c);
 }
 
@@ -114,7 +113,8 @@ function drawFigure(g: Phaser.GameObjects.Graphics, c: PoseColors): void {
   g.fillStyle(c.cap);
   g.fillRect(-5, -4, 10, 12);
   g.fillStyle(c.skin);
-  g.fillRect(-3, 8, 6, 8);
+  g.fillRect(-3, 8, 2, 8);
+  g.fillRect(1, 8, 2, 8);
   drawHeadWithCap(g, 0, -8, 5, c);
 }
 
@@ -171,16 +171,13 @@ function drawSplit(g: Phaser.GameObjects.Graphics, c: PoseColors): void {
 }
 
 function drawSpin(g: Phaser.GameObjects.Graphics, c: PoseColors): void {
-  g.lineStyle(2, 0xffffff, 0.25);
-  g.strokeCircle(0, 2, 15);
-  g.lineStyle(1, 0xffffff, 0.5);
-  g.strokeCircle(0, 2, 11);
   g.fillStyle(c.skin, 0.5);
   g.fillEllipse(-3, 4, 12, 8);
   g.fillStyle(c.cap, 0.8);
   g.fillEllipse(0, 3, 10, 7);
   g.fillStyle(c.skin);
-  g.fillRect(-3, 9, 6, 5);
+  g.fillRect(-3, 9, 2, 5);
+  g.fillRect(1, 9, 2, 5);
   drawHeadWithCap(g, 0, -5, 5, c);
   g.fillStyle(0xffffff, 0.7);
   g.fillTriangle(-15, 2, -12, -1, -12, 5);
@@ -238,7 +235,8 @@ function drawSubmerged(g: Phaser.GameObjects.Graphics, c: PoseColors): void {
   g.fillStyle(c.cap, 0.45);
   g.fillEllipse(0, 4, 10, 7);
   g.fillStyle(c.skin, 0.35);
-  g.fillRect(-3, 10, 6, 6);
+  g.fillRect(-3, 10, 2, 6);
+  g.fillRect(1, 10, 2, 6);
   g.fillCircle(0, -4, 5);
   g.fillStyle(c.cap, 0.45);
   g.beginPath();
@@ -259,10 +257,9 @@ function drawThrow(g: Phaser.GameObjects.Graphics, c: PoseColors): void {
   g.fillStyle(c.cap);
   g.fillRect(-5, -2, 10, 10);
   g.fillStyle(c.skin);
-  g.fillRect(-3, 8, 6, 10);
+  g.fillRect(-3, 8, 2, 10);
+  g.fillRect(1, 8, 2, 10);
   drawHeadWithCap(g, 0, -7, 5, c);
-  g.lineStyle(1, 0x000000, 0.25);
-  g.strokeCircle(0, 22, 11);
 }
 
 function drawStarfish(g: Phaser.GameObjects.Graphics, c: PoseColors): void {
@@ -294,10 +291,6 @@ function drawFlamingo(g: Phaser.GameObjects.Graphics, c: PoseColors): void {
 }
 
 function drawSomersault(g: Phaser.GameObjects.Graphics, c: PoseColors): void {
-  g.lineStyle(1, 0xffffff, 0.55);
-  g.beginPath();
-  g.arc(0, 2, 13, Phaser.Math.DegToRad(120), Phaser.Math.DegToRad(330));
-  g.strokePath();
   g.fillStyle(c.cap);
   g.fillCircle(0, 2, 9);
   g.fillStyle(c.skin);

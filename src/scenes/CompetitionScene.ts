@@ -17,7 +17,7 @@ const POOL_W = 1000;
 const POOL_H = 480;
 const POOL_CX = POOL_X + POOL_W / 2;
 const POOL_CY = POOL_Y + POOL_H / 2;
-const FORMATION_SPREAD = 80;
+const FORMATION_SPREAD = 110;
 
 export class CompetitionScene extends Phaser.Scene {
   private swimmerSprites: Phaser.GameObjects.Container[] = [];
