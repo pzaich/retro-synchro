@@ -7,6 +7,8 @@ import { getFormationPositions } from '../animations/FormationManager';
 import { setTextInteractive } from '../ui/hitArea';
 import { getChoreography, ChoreographyFrame } from '../animations/ChoreographyManager';
 import { ElementData } from '../entities/Element';
+import { SwimmerData } from '../entities/Swimmer';
+import { drawSwimmerPose } from '../ui/SwimmerPoseRenderer';
 import elementsData from '../data/elements.json';
 
 const POOL_X = 140;
@@ -19,7 +21,8 @@ const FORMATION_SPREAD = 80;
 
 export class CompetitionScene extends Phaser.Scene {
   private swimmerSprites: Phaser.GameObjects.Container[] = [];
-  private swimmerImages: Phaser.GameObjects.Image[] = [];
+  private swimmerGraphics: Phaser.GameObjects.Graphics[] = [];
+  private swimmerData: SwimmerData[] = [];
   private elementLookup = new Map<string, ElementData>();
   private result!: CompetitionResult;
   private opponent!: OpponentTeam;
@@ -250,19 +253,24 @@ export class CompetitionScene extends Phaser.Scene {
 
   private createSwimmers(): void {
     this.swimmerSprites = [];
-    this.swimmerImages = [];
+    this.swimmerGraphics = [];
+    this.swimmerData = [];
+    const state = GameState.getInstance().get();
+    const active = state.team.swimmers.filter(s => !s.isAlternate);
     const startPositions = getFormationPositions('straight-line', POOL_CX, POOL_CY, FORMATION_SPREAD);
 
     for (let i = 0; i < 8; i++) {
       const pos = startPositions[i]!;
+      const swimmer = active[i] ?? active[0]!;
       const container = this.add.container(pos.x, pos.y);
-
-      const img = this.add.image(0, 0, 'swimmer-default');
-      img.setScale(1);
-      container.add(img);
-      this.swimmerImages.push(img);
+      const gfx = this.add.graphics();
+      gfx.setScale(1.6);
+      drawSwimmerPose(gfx, 'swimmer-default', swimmer);
+      container.add(gfx);
 
       this.swimmerSprites.push(container);
+      this.swimmerGraphics.push(gfx);
+      this.swimmerData.push(swimmer);
     }
   }
 
@@ -378,9 +386,9 @@ export class CompetitionScene extends Phaser.Scene {
       this.tweens.add({ targets: actionLabel, alpha: 0, duration: 200, onComplete: () => actionLabel.destroy() });
     });
 
-    // Swap swimmer textures based on per-swimmer choreography poses
-    this.swimmerImages.forEach((img, i) => {
-      img.setTexture(choreo.poses[i] ?? 'swimmer-default');
+    // Redraw each swimmer in their choreographed pose
+    this.swimmerGraphics.forEach((gfx, i) => {
+      drawSwimmerPose(gfx, choreo.poses[i] ?? 'swimmer-default', this.swimmerData[i]!);
     });
 
     this.swimmerSprites.forEach((sprite, idx) => {
@@ -419,7 +427,9 @@ export class CompetitionScene extends Phaser.Scene {
 
     // Restore default pose after action
     this.time.delayedCall(actionDuration, () => {
-      this.swimmerImages.forEach(img => img.setTexture('swimmer-default'));
+      this.swimmerGraphics.forEach((gfx, i) => {
+        drawSwimmerPose(gfx, 'swimmer-default', this.swimmerData[i]!);
+      });
     });
 
     // Show score flash
