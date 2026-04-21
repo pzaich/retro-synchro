@@ -59,6 +59,9 @@ export function scoreRoutine(
   const avgAthleticism = avg(activeSwimmers.map(s => s.stats.athleticism));
   const avgEndurance = avg(activeSwimmers.map(s => s.stats.endurance));
 
+  const fatigueCapacity = computeFatigueCapacity(swimmers);
+  let accumulatedFatigue = 0;
+
   const elementScores: ElementScore[] = [];
   let totalDifficulty = 0;
   const usedCategories = new Set<string>();
@@ -70,9 +73,9 @@ export function scoreRoutine(
 
     totalDifficulty += element.difficulty;
 
-    // Fatigue: endurance matters more for later elements
-    const fatiguePct = i / Math.max(routine.slots.length - 1, 1);
-    const fatigueMultiplier = 1 - fatiguePct * (1 - avgEndurance / 12); // up to ~17% penalty at end
+    // Accumulated tier-weighted fatigue measured against team capacity.
+    const fatiguePct = accumulatedFatigue / fatigueCapacity;
+    const fatigueMultiplier = Math.max(0.35, 1 - fatiguePct * 0.35);
 
     // Execution check: difficulty matters
     const abilityRatio = (avgAthleticism * 1.4) / Math.max(element.difficulty, 0.1);
@@ -109,6 +112,8 @@ export function scoreRoutine(
       total: round1(total),
       success,
     });
+
+    accumulatedFatigue += fatigueCostFor(element.tier);
   }
 
   // Judge panel: 5 judges with slight random bias

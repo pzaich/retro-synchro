@@ -1,6 +1,7 @@
 import { RoutineData } from '../entities/Routine';
 import { SwimmerData } from '../entities/Swimmer';
 import { ElementData } from '../entities/Element';
+import { fatigueCostFor, computeFatigueCapacity } from './ScoringEngine';
 
 export interface ValidationResult {
   totalDifficulty: number;
@@ -8,6 +9,8 @@ export interface ValidationResult {
   difficultyRating: 'easy' | 'moderate' | 'hard' | 'risky';
   elementRisks: Map<string, number>; // elementId -> risk factor (0-1, where 1 = very risky)
   estimatedScore: { low: number; high: number };
+  fatigueLoad: number;     // total accumulated fatigue cost of the routine
+  fatigueCapacity: number; // team's fatigue budget
 }
 
 /**
@@ -31,25 +34,26 @@ export function validateRoutine(
   let totalDifficulty = 0;
   const elementRisks = new Map<string, number>();
 
+  const fatigueCapacity = computeFatigueCapacity(swimmers);
+  let accumulatedFatigue = 0;
+
   for (const slot of routine.slots) {
     const element = elementLookup.get(slot.elementId);
     if (!element) continue;
 
     totalDifficulty += element.difficulty;
 
-    // Risk = how far the element difficulty exceeds the team's ability
-    // Athleticism is the primary stat for executing difficult elements
-    // Endurance matters more for elements later in the routine
-    const slotIndex = routine.slots.indexOf(slot);
-    const fatigueFactor = 1 + (slotIndex / routine.slots.length) * 0.3; // up to 30% harder at the end
-    const effectiveDifficulty = element.difficulty * fatigueFactor;
+    // Risk = how far the element difficulty exceeds team ability, amplified by
+    // accumulated fatigue from prior tier-weighted element costs.
+    const fatiguePct = accumulatedFatigue / fatigueCapacity;
+    const effectiveDifficulty = element.difficulty * (1 + fatiguePct * 0.5);
 
-    // Risk factor: 0 = safe, 1 = very risky
     const abilityScore = (avgAthleticism * 0.5 + avgArtistry * 0.3 + avgEndurance * 0.2);
-    const difficultyThreshold = abilityScore * 0.4; // max safe difficulty scales with stats
+    const difficultyThreshold = abilityScore * 0.4;
     const risk = Math.max(0, Math.min(1, (effectiveDifficulty - difficultyThreshold) / 2));
 
     elementRisks.set(slot.elementId, risk);
+    accumulatedFatigue += fatigueCostFor(element.tier);
   }
 
   // Difficulty rating
@@ -76,6 +80,8 @@ export function validateRoutine(
       low: Math.round(baseScore * executionMultiplier * 0.7 * 10) / 10,
       high: Math.round(baseScore * Math.min(1, executionMultiplier * 1.2) * 10) / 10,
     },
+    fatigueLoad: Math.round(accumulatedFatigue * 10) / 10,
+    fatigueCapacity: Math.round(fatigueCapacity * 10) / 10,
   };
 }
 
