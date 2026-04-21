@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_WIDTH, GAME_HEIGHT, COLORS } from '../config';
 import { GameState, generateSeasonMatches } from '../systems/GameState';
-import { scoreRoutine, CompetitionResult, ElementScore } from '../systems/ScoringEngine';
+import { scoreRoutine, CompetitionResult, ElementScore, computeFatigueCapacity, fatigueCostFor } from '../systems/ScoringEngine';
 import { generateOpponent, OpponentTeam } from '../systems/OpponentGenerator';
 import { getFormationPositions } from '../animations/FormationManager';
 import { setTextInteractive } from '../ui/hitArea';
@@ -31,6 +31,10 @@ export class CompetitionScene extends Phaser.Scene {
   private scoreFlash!: Phaser.GameObjects.Text;
   private progressText!: Phaser.GameObjects.Text;
   private statusText!: Phaser.GameObjects.Text;
+  private fatigueBar!: Phaser.GameObjects.Graphics;
+  private fatigueText!: Phaser.GameObjects.Text;
+  private fatigueCapacity = 0;
+  private accumulatedFatigue = 0;
 
   constructor() {
     super('Competition');
@@ -69,6 +73,8 @@ export class CompetitionScene extends Phaser.Scene {
     // Pre-calculate scores
     this.result = scoreRoutine(routine, state.team.swimmers, this.elementLookup);
     this.currentElementIndex = 0;
+    this.fatigueCapacity = computeFatigueCapacity(state.team.swimmers);
+    this.accumulatedFatigue = 0;
 
     // Show pre-competition screen first
     this.showPreCompetition(state.team.name);
@@ -317,6 +323,46 @@ export class CompetitionScene extends Phaser.Scene {
       fontSize: '14px',
       color: '#ffffff',
     }).setOrigin(1, 0);
+
+    // Team fatigue indicator
+    this.add.text(POOL_X, 20, 'TEAM FATIGUE', {
+      fontFamily: 'monospace', fontSize: '12px', color: '#f0c040', fontStyle: 'bold',
+    });
+    this.fatigueText = this.add.text(POOL_X + 110, 20, '', {
+      fontFamily: 'monospace', fontSize: '12px', color: '#ffffff',
+    });
+    this.fatigueBar = this.add.graphics();
+    this.drawFatigueBar();
+  }
+
+  private drawFatigueBar(): void {
+    const barX = POOL_X;
+    const barY = 38;
+    const barW = 200;
+    const barH = 8;
+
+    const pct = this.fatigueCapacity > 0 ? this.accumulatedFatigue / this.fatigueCapacity : 0;
+    const color = pct >= 1 ? 0xe74c3c
+      : pct >= 0.8 ? 0xe67e22
+      : pct >= 0.5 ? 0xf0c040
+      : 0x2ecc71;
+
+    this.fatigueBar.clear();
+    this.fatigueBar.fillStyle(COLORS.dark);
+    this.fatigueBar.fillRect(barX, barY, barW, barH);
+    this.fatigueBar.fillStyle(color);
+    this.fatigueBar.fillRect(barX, barY, barW * Math.min(1, pct), barH);
+    if (pct > 1) {
+      this.fatigueBar.fillStyle(0xe74c3c, 0.7);
+      this.fatigueBar.fillRect(barX + barW, barY - 2, 4, barH + 4);
+    }
+    this.fatigueBar.lineStyle(1, COLORS.panelBorder);
+    this.fatigueBar.strokeRect(barX, barY, barW, barH);
+
+    const loadStr = (Math.round(this.accumulatedFatigue * 10) / 10).toFixed(1);
+    const capStr = (Math.round(this.fatigueCapacity * 10) / 10).toFixed(1);
+    this.fatigueText.setText(`${loadStr} / ${capStr}`);
+    this.fatigueText.setColor(pct >= 1 ? '#e74c3c' : pct >= 0.8 ? '#e67e22' : '#ffffff');
   }
 
   private playNextElement(): void {
@@ -436,6 +482,12 @@ export class CompetitionScene extends Phaser.Scene {
     this.time.delayedCall(actionDuration + 100, () => {
       this.showScoreFlash(elemScore);
     });
+
+    // Tick fatigue — mirrors what ScoringEngine charged for this element.
+    if (element) {
+      this.accumulatedFatigue += fatigueCostFor(element.tier);
+      this.drawFatigueBar();
+    }
   }
 
   // ── Category-specific animations ──────────────────────

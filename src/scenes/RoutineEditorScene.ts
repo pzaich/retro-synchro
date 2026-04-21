@@ -32,6 +32,8 @@ export class RoutineEditorScene extends Phaser.Scene {
   private validationText!: Phaser.GameObjects.Text;
   private difficultyBar!: Phaser.GameObjects.Graphics;
   private scoreText!: Phaser.GameObjects.Text;
+  private fatigueBar!: Phaser.GameObjects.Graphics;
+  private fatigueText!: Phaser.GameObjects.Text;
   private filterCategory = 'all';
   private scrollOffset = 0;
   private maxTier = 1;
@@ -377,6 +379,15 @@ export class RoutineEditorScene extends Phaser.Scene {
       fontFamily: 'monospace', fontSize: '13px', color: '#bbe1fa',
     });
 
+    this.add.text(700, meterY + 8, 'FATIGUE', {
+      fontFamily: 'monospace', fontSize: '14px', color: '#f0c040', fontStyle: 'bold',
+    });
+
+    this.fatigueText = this.add.text(780, meterY + 8, '', {
+      fontFamily: 'monospace', fontSize: '13px', color: '#ffffff',
+    });
+    this.fatigueBar = this.add.graphics();
+
     new UIButton(this, GAME_WIDTH - 200, meterY + 10, 'Save Routine', () => {
       this.routine.slots = this.routine.slots.filter(s => s.elementId !== '');
       SaveManager.save();
@@ -394,6 +405,8 @@ export class RoutineEditorScene extends Phaser.Scene {
       this.validationText.setColor('#555555');
       this.scoreText.setText('');
       this.drawDifficultyBar(0, 'easy');
+      this.fatigueText.setText('');
+      this.drawFatigueBar(0, 1);
       return;
     }
 
@@ -412,6 +425,11 @@ export class RoutineEditorScene extends Phaser.Scene {
       `Est. Score Range: ${result.estimatedScore.low} - ${result.estimatedScore.high}`
     );
     this.drawDifficultyBar(result.totalDifficulty, result.difficultyRating);
+
+    const loadPct = result.fatigueLoad / result.fatigueCapacity;
+    this.fatigueText.setText(`${result.fatigueLoad} / ${result.fatigueCapacity}`);
+    this.fatigueText.setColor(loadPct >= 1 ? '#e74c3c' : loadPct >= 0.8 ? '#e67e22' : '#ffffff');
+    this.drawFatigueBar(result.fatigueLoad, result.fatigueCapacity);
   }
 
   private drawDifficultyBar(totalDD: number, rating: string): void {
@@ -434,5 +452,34 @@ export class RoutineEditorScene extends Phaser.Scene {
 
     this.difficultyBar.lineStyle(1, COLORS.panelBorder);
     this.difficultyBar.strokeRect(barX, barY, barW, barH);
+  }
+
+  private drawFatigueBar(load: number, capacity: number): void {
+    const barX = 700;
+    const barY = GAME_HEIGHT - 42;
+    const barW = 160;
+    const barH = 10;
+
+    const pct = capacity > 0 ? load / capacity : 0;
+    const color = pct >= 1 ? COLORS.red
+      : pct >= 0.8 ? 0xe67e22
+      : pct >= 0.5 ? COLORS.gold
+      : COLORS.green;
+
+    this.fatigueBar.clear();
+    this.fatigueBar.fillStyle(COLORS.dark);
+    this.fatigueBar.fillRect(barX, barY, barW, barH);
+
+    const fillPct = Math.min(1, pct);
+    this.fatigueBar.fillStyle(color);
+    this.fatigueBar.fillRect(barX, barY, barW * fillPct, barH);
+
+    if (pct > 1) {
+      this.fatigueBar.fillStyle(COLORS.red, 0.7);
+      this.fatigueBar.fillRect(barX + barW, barY - 2, 4, barH + 4);
+    }
+
+    this.fatigueBar.lineStyle(1, COLORS.panelBorder);
+    this.fatigueBar.strokeRect(barX, barY, barW, barH);
   }
 }
