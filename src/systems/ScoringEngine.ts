@@ -1,6 +1,20 @@
 import { RoutineData } from '../entities/Routine';
 import { SwimmerData } from '../entities/Swimmer';
-import { ElementData } from '../entities/Element';
+import { ElementData, ElementTier } from '../entities/Element';
+
+export const TIER_FATIGUE_COST: Record<ElementTier, number> = { 1: 1, 2: 2.5, 3: 5, 4: 8 };
+
+export function fatigueCostFor(tier: number): number {
+  return TIER_FATIGUE_COST[tier as ElementTier] ?? 1;
+}
+
+export function computeFatigueCapacity(swimmers: SwimmerData[]): number {
+  const active = swimmers.filter(s => !s.isAlternate);
+  if (active.length === 0) return 12;
+  const avgLevel = active.reduce((a, s) => a + s.level, 0) / active.length;
+  const avgEndurance = active.reduce((a, s) => a + s.stats.endurance, 0) / active.length;
+  return 12 + avgLevel * 1.5 + avgEndurance * 1.5;
+}
 
 export interface ElementScore {
   elementId: string;
